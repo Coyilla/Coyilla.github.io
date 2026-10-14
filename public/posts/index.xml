@@ -6,8 +6,35 @@
     <description>Recent content in Posts on Coyilla的技术随想录</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 14 Oct 2026 22:38:38 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 14 Oct 2026 23:05:01 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>个人博客搭建记录</title>
+      <link>http://localhost:1313/posts/record_of_build_myself_blog/</link>
+      <pubDate>Wed, 14 Oct 2026 23:05:01 +0800</pubDate>
+      <guid>http://localhost:1313/posts/record_of_build_myself_blog/</guid>
+      <description>&lt;h1 id=&#34;开始&#34;&gt;开始&lt;/h1&gt;
+&lt;p&gt;这篇文章记录一下我搭建博客时踩过的坑&amp;hellip;&lt;/p&gt;
+&lt;h2 id=&#34;1-为什么选-hugo&#34;&gt;1. 为什么选 Hugo&lt;/h2&gt;
+&lt;p&gt;因为我想要一个&lt;strong&gt;轻量级、快速、易于部署&lt;/strong&gt;的博客系统。Hugo 是一个静态网站生成器，它可以将 Markdown 文件转换为 HTML 页面，生成的页面可以直接部署到 GitHub Pages 上，非常适合个人博客。&lt;/p&gt;
+&lt;h2 id=&#34;2-为什么选-papermod-主题&#34;&gt;2. 为什么选 PaperMod 主题&lt;/h2&gt;
+&lt;p&gt;PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应式设计、代码高亮等功能，非常适合技术博客。它的配置也比较简单。&lt;/p&gt;
+&lt;h2 id=&#34;3-部署到-github-pages&#34;&gt;3. 部署到 GitHub Pages&lt;/h2&gt;
+&lt;p&gt;我选择将博客部署到 GitHub Pages，这样可以免费托管我的博客，并且可以通过 GitHub Actions 实现自动部署。每次我提交新的文章，GitHub Actions 会自动构建并部署我的博客，非常方便。&lt;/p&gt;
+&lt;h2 id=&#34;4-遇到的问题&#34;&gt;4. 遇到的问题&lt;/h2&gt;
+&lt;h2 id=&#34;5-搭建记录&#34;&gt;5. 搭建记录&lt;/h2&gt;
+&lt;h3 id=&#34;2026-10-14-开始搭建&#34;&gt;2026-10-14 开始搭建&lt;/h3&gt;
+&lt;p&gt;这一天，我闲着无聊，开始写CANN训练营的技术文章。既然文章都写好了，就萌生了一个想法：为什么不自己搭建一个博客，把这些文章都放上去呢？于是，我开始了我的博客搭建之旅。&lt;br&gt;
+这个想法已经在我脑海里盘旋了很久，2026年10月，终于开始了。&lt;/p&gt;
+&lt;p&gt;主要完成任务：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;搭建博客基础雏形，采用Hogo+PaperMod，完成带主页+目录的博客，成功部署到github上并准备好了域名&lt;/li&gt;
+&lt;li&gt;发表4篇文章作为试水&lt;/li&gt;
+&lt;li&gt;发现别人的博客好好看&amp;hellip;我也想要&amp;hellip;慢慢做吧&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;附一张最初的博客，希望以后能坚持更新，改头换面
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/image1.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）</title>
       <link>http://localhost:1313/posts/cann_qwen3_8b_2_3/</link>
