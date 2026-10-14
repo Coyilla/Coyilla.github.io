@@ -1,7 +1,7 @@
 baseURL = 'https://coyilla.github.io/'
 languageCode = "zh-cn"
 theme = "PaperMod"
-title = 'Coyilla的技术博客'
+title = 'Coyilla的技术随想录'
 
 # 文章默认配置
 [params]
