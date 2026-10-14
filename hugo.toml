@@ -1,4 +1,4 @@
-baseURL = 'https://Coyilla.github.io/'
+baseURL = 'https://coyilla.github.io/'
 locale = 'en-us'
 languageCode = "zh-cn"
 theme = "PaperMod"
