@@ -1,0 +1,5 @@
+baseURL = 'https://Coyilla.github.io/'
+locale = 'en-us'
+languageCode = "zh-cn"
+theme = "PaperMod"
+title = 'My New Hugo Project'
