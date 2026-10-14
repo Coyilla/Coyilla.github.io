@@ -5,9 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>Posts | My New Hugo Project</title>
+<title>Posts | Coyilla的技术博客</title>
 <meta name="keywords" content="">
-<meta name="description" content="Posts - My New Hugo Project">
+<meta name="description" content="Posts - Coyilla的技术博客">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
@@ -71,7 +71,7 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="My New Hugo Project (Alt + H)">My New Hugo Project</a>
+            <a href="http://localhost:1313/" accesskey="h" title="Coyilla的技术博客 (Alt + H)">Coyilla的技术博客</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
@@ -108,6 +108,29 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">【CANN训练营】Qwen3-8B 推理优化实践食用指南
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>【CANN训练营】Qwen3-8B 推理优化实践食用指南 课程内容 课程资源：cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit
+这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：
+用 cann-recipes-infer 框架跑通推理和性能分析，验证 Dense RMSNorm 融合路径的效果 用 AMCT 工具做 W8A8 量化，并开发自定义量化matmul算子 对比三种执行模式（Eager、GE Graph、NPU Graph EX），并在 GE 图模式下验证 Fused Attention 预取权重的收益 整个流程按 recipes 的标准用法走：先改 models/ qwen /config/ 下的 YAML 配置，再用 executor/scripts/infer.sh 启动推理，最后从 res/ 和 prof/ 目录看结果。
+主要就是看课程里的readme，一步步跟着notebook的内容运行代码。
+大部分内容都可以看qwen3_8b/README.md，里面写的非常详细。这篇文章主要讲一下容易遇到的问题，和实践过程中的笔记内容。
+环境启动 主要有两种方式：
+1. CANNLab（推荐） 就是云环境，有100小时的免费使用时长，也是比较推荐的，具体配置看下面：
+cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learning-hub:基于 CANN 生态的学习中心项目 - AtomGit
+2. 本地部署 这个需要有昇腾 NPU，CANN9.0.0以上。
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-14 20:13:41 +0800 CST'>October 14, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 【CANN训练营】Qwen3-8B 推理优化实践食用指南" href="http://localhost:1313/posts/cann_qwen3_8b_1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Hello
     </h2>
   </header>
@@ -123,7 +146,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">My New Hugo Project</a></span> · 
+        <span>&copy; 2026 <a href="http://localhost:1313/">Coyilla的技术博客</a></span> · 
 
     
     

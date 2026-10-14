@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>My New Hugo Project</title>
+    <title>Coyilla的技术博客</title>
     <link>http://localhost:1313/</link>
-    <description>Recent content on My New Hugo Project</description>
+    <description>Recent content on Coyilla的技术博客</description>
     <generator>Hugo</generator>
-    <language>en-us</language>
-    <lastBuildDate>Wed, 14 Oct 2026 19:49:15 +0800</lastBuildDate>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 14 Oct 2026 20:13:41 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CANN训练营】Qwen3-8B 推理优化实践食用指南</title>
+      <link>http://localhost:1313/posts/cann_qwen3_8b_1/</link>
+      <pubDate>Wed, 14 Oct 2026 20:13:41 +0800</pubDate>
+      <guid>http://localhost:1313/posts/cann_qwen3_8b_1/</guid>
+      <description>&lt;h2 id=&#34;课程内容&#34;&gt;课程内容&lt;/h2&gt;
+&lt;p&gt;课程资源：&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/llm_inference/qwen3_8b&#34; title=&#34;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&#34;&gt;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;用 cann-recipes-infer 框架跑通推理和性能分析，验证 Dense RMSNorm 融合路径的效果&lt;/li&gt;
+&lt;li&gt;用 AMCT 工具做 W8A8 量化，并开发自定义量化matmul算子&lt;/li&gt;
+&lt;li&gt;对比三种执行模式（Eager、GE Graph、NPU Graph EX），并在 GE 图模式下验证 Fused Attention 预取权重的收益&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;整个流程按 recipes 的标准用法走：先改 models/ qwen /config/ 下的 YAML 配置，再用 executor/scripts/infer.sh 启动推理，最后从 res/ 和 prof/ 目录看结果。&lt;/p&gt;
+&lt;p&gt;主要就是看课程里的readme，一步步跟着notebook的内容运行代码。&lt;/p&gt;
+&lt;p&gt;大部分内容都可以看qwen3_8b/README.md，里面写的非常详细。这篇文章主要讲一下容易遇到的问题，和实践过程中的笔记内容。&lt;/p&gt;
+&lt;h2 id=&#34;环境启动&#34;&gt;环境启动&lt;/h2&gt;
+&lt;p&gt;主要有两种方式：&lt;/p&gt;
+&lt;h3 id=&#34;1-cannlab推荐&#34;&gt;1. CANNLab（推荐）&lt;/h3&gt;
+&lt;p&gt;就是云环境，有100小时的免费使用时长，也是比较推荐的，具体配置看下面：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/blob/master/docs/CANNLab_env_experience_guide.md&#34; title=&#34;cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learning-hub:基于 CANN 生态的学习中心项目 - AtomGit&#34;&gt;cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learning-hub:基于 CANN 生态的学习中心项目 - AtomGit&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;2-本地部署&#34;&gt;2. 本地部署&lt;/h3&gt;
+&lt;p&gt;这个需要有昇腾 NPU，CANN9.0.0以上。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Hello</title>
       <link>http://localhost:1313/posts/hello/</link>
