@@ -13,8 +13,7 @@
       <link>http://localhost:1313/posts/cann_qwen3_8b_1/</link>
       <pubDate>Wed, 14 Oct 2026 20:13:41 +0800</pubDate>
       <guid>http://localhost:1313/posts/cann_qwen3_8b_1/</guid>
-      <description>&lt;h1 id=&#34;cann训练营qwen3-8b-推理优化实践食用指南&#34;&gt;【CANN训练营】Qwen3-8B 推理优化实践食用指南&lt;/h1&gt;
-&lt;h2 id=&#34;课程内容&#34;&gt;课程内容&lt;/h2&gt;
+      <description>&lt;h2 id=&#34;课程内容&#34;&gt;课程内容&lt;/h2&gt;
 &lt;p&gt;课程资源：&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/llm_inference/qwen3_8b&#34; title=&#34;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&#34;&gt;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：&lt;/p&gt;
 &lt;ol&gt;
