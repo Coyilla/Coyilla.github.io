@@ -2,3 +2,32 @@ baseURL = 'https://coyilla.github.io/'
 languageCode = "zh-cn"
 theme = "PaperMod"
 title = 'Coyilla的技术博客'
+
+# 文章默认配置
+[params]
+  ShowReadingTime = true        # 显示阅读时间
+  ShowShareButtons = true       # 分享按钮
+  ShowCodeCopyButtons = true    # 代码块复制按钮
+  ShowToc = true                # 显示目录
+  TocOpen = true                # 目录默认展开
+
+# 菜单导航（顶部导航栏）
+[menu]
+  [[menu.main]]
+    name = "首页"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    name = "归档"
+    url = "/archives/"
+    weight = 2
+  [[menu.main]]
+    name = "标签"
+    url = "/tags/"
+    weight = 3
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    lineNos = true
+    style = "github"
