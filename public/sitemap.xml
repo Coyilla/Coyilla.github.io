@@ -3,10 +3,13 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2026-10-14T23:05:01+08:00</lastmod>
+    <lastmod>2026-10-15T09:21:09+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/how_to_use_copilot/</loc>
+    <lastmod>2026-10-15T09:21:09+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/posts/</loc>
-    <lastmod>2026-10-14T23:05:01+08:00</lastmod>
+    <lastmod>2026-10-15T09:21:09+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/posts/record_of_build_myself_blog/</loc>
     <lastmod>2026-10-14T23:05:01+08:00</lastmod>
