@@ -6,8 +6,83 @@
     <description>Recent content in Posts on Coyilla的技术随想录</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 15 Oct 2026 09:21:09 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 15 Oct 2026 10:49:27 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CANN训练营】课堂笔记</title>
+      <link>http://localhost:1313/posts/cann_index/</link>
+      <pubDate>Thu, 15 Oct 2026 10:49:27 +0800</pubDate>
+      <guid>http://localhost:1313/posts/cann_index/</guid>
+      <description>&lt;h1 id=&#34;day1上午-cann基础&#34;&gt;day1上午 CANN基础&lt;/h1&gt;
+&lt;h2 id=&#34;part1-人工智能基础&#34;&gt;PART1 人工智能基础&lt;/h2&gt;
+&lt;h3 id=&#34;人工智能起源&#34;&gt;人工智能起源&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;图灵测试 图灵&lt;/li&gt;
+&lt;li&gt;达特茅斯会议 麦卡锡&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;人工智能发展&#34;&gt;人工智能发展&lt;/h3&gt;
+&lt;p&gt;从“感知理解世界”向“生成创造世界”扩展&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;上世纪 达特茅斯会议&lt;/li&gt;
+&lt;li&gt;1997 深蓝机器人战胜人类&lt;/li&gt;
+&lt;li&gt;2015 视觉识别超过人类&lt;/li&gt;
+&lt;li&gt;2020 蛋白质检查&lt;/li&gt;
+&lt;li&gt;2023 chatgpt出现&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;概念理解人工智能机器学习和深度学习&#34;&gt;概念理解：人工智能、机器学习和深度学习&lt;/h3&gt;
+&lt;h3 id=&#34;人工智能核心三要素数据算法算力&#34;&gt;人工智能核心三要素：数据+算法+算力&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;算力：身体&lt;/li&gt;
+&lt;li&gt;算法：大脑&lt;/li&gt;
+&lt;li&gt;数据：粮食&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;算法理论基础业务抽象成数据模型的表达式&#34;&gt;算法理论基础：业务抽象成数据模型的表达式&lt;/h3&gt;
+&lt;p&gt;建模-训练-微调-推理&lt;/p&gt;
+&lt;h3 id=&#34;神经网络算法的发明是现代人工智能的开端&#34;&gt;神经网络算法的发明是现代人工智能的开端&lt;/h3&gt;
+&lt;p&gt;模拟神经元&lt;br&gt;
+权重-激活-状态&lt;br&gt;
+基于向前传播和向后传播的神经网络开启了现代AI的大发展&lt;/p&gt;
+&lt;h3 id=&#34;神经网络2012年imagenet取得巨大突破被往返认为现代ai的开始&#34;&gt;神经网络——2012年ImageNet取得巨大突破，被往返认为现代AI的开始&lt;/h3&gt;
+&lt;p&gt;海量数据+神经网络算法+大算力=现代AI&lt;/p&gt;
+&lt;h3 id=&#34;概念理解训练和推理&#34;&gt;概念理解：训练和推理&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;开发态-AI训练：通过大量数据学习“规则”形成模型/算法&lt;/li&gt;
+&lt;li&gt;部署态-AI推理：利用已经训练好的“规则”完成具体任务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;从算法为中心到以数据为中心是ai大模型所带来的重大范式转移&#34;&gt;从算法为中心到以数据为中心，是AI大模型所带来的重大范式转移&lt;/h3&gt;
+&lt;p&gt;AI=Code+Data&lt;br&gt;
+数据的质量，决定了算法性能的上限。&lt;/p&gt;
+&lt;h3 id=&#34;人工智能概念计算图算子&#34;&gt;人工智能概念：计算图、算子&lt;/h3&gt;
+&lt;p&gt;计算图本质上是一个有向图，由节点（Node）和边（Edge）组成&lt;br&gt;
+子（Operator，简称 Op）是计算图中的基本计算单元&lt;/p&gt;
+&lt;h3 id=&#34;算子&#34;&gt;算子&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;算子名称&lt;/li&gt;
+&lt;li&gt;算子裂隙&lt;/li&gt;
+&lt;li&gt;数据容器：张量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;张量&#34;&gt;张量&lt;/h3&gt;
+&lt;p&gt;Tensor是存储算子输入数据与输出数据的容器&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;名称 name&lt;/li&gt;
+&lt;li&gt;形状 shape&lt;/li&gt;
+&lt;li&gt;数据类型 dtype&lt;/li&gt;
+&lt;li&gt;数据排布格式 format：4D格式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;AI模型=计算图=算子组合-&amp;gt;&lt;/p&gt;
+&lt;h2 id=&#34;part2--什么是npu&#34;&gt;PART2  什么是NPU&lt;/h2&gt;
+&lt;h3 id=&#34;为什么要npu&#34;&gt;为什么要NPU&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;计算密集。计算任务大，操作逻辑简单&lt;/li&gt;
+&lt;li&gt;数据并行。操作独立，可同时处理&lt;/li&gt;
+&lt;li&gt;低精度可接受。AI对计算误差有较高容忍度。使用半精度或整数即可获得足够好的结果&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;昇腾npuai计算的发动机&#34;&gt;昇腾NPU：AI计算的发动机&lt;/h3&gt;
+&lt;p&gt;华为昇腾AI芯片，采用达芬奇架构，集成超大规模的计算单元，是支撑AI全场景应用的核心硬件基础&lt;/p&gt;
+&lt;h3 id=&#34;cpu-vs-npu算力差距有多大&#34;&gt;CPU vs NPU：算力差距有多大&lt;/h3&gt;
+&lt;p&gt;16*16矩阵：&lt;/p&gt;</description>
+    </item>
     <item>
       <title>GitHub Copilot 使用指南</title>
       <link>http://localhost:1313/posts/how_to_use_copilot/</link>
@@ -97,7 +172,8 @@
 &lt;li&gt;在想一些不那么技术的事：把binggo之争放上来&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;附一张最初的博客，希望以后能坚持更新，改头换面
-&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/image1.png&#34;&gt;&lt;/p&gt;</description>
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/image1.png&#34;&gt;
+&lt;img alt=&#34;alt text&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260420193736_332_8.jpg&#34;&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）</title>

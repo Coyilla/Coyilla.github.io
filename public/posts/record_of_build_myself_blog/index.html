@@ -9,14 +9,16 @@
 <meta name="keywords" content="">
 <meta name="description" content="开始
 这篇文章记录一下我搭建博客时踩过的坑&hellip;
-1. 为什么选 Hugo
+1. 为什么选 Hugo和PaperMod 主题
 因为我想要一个轻量级、快速、易于部署的博客系统。Hugo 是一个静态网站生成器，它可以将 Markdown 文件转换为 HTML 页面，生成的页面可以直接部署到 GitHub Pages 上，非常适合个人博客。
-2. 为什么选 PaperMod 主题
 PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应式设计、代码高亮等功能，非常适合技术博客。它的配置也比较简单。
-3. 部署到 GitHub Pages
+2. 部署到 GitHub Pages
 我选择将博客部署到 GitHub Pages，这样可以免费托管我的博客，并且可以通过 GitHub Actions 实现自动部署。每次我提交新的文章，GitHub Actions 会自动构建并部署我的博客，非常方便。
-4. 遇到的问题
-5. 搭建记录
+3. 遇到的问题
+文件图片的链接到底能不能用中文？
+有时候图片文件名中有中文时，图片就无法加载。但是很多截图、微信图片文件，图片文件名都会有中文。这个就很麻烦。
+但是有时候这个问题又不会出现，很奇怪。
+4. 搭建记录
 2026-10-14 开始搭建
 这一天，我闲着无聊，开始写CANN训练营的技术文章。既然文章都写好了，就萌生了一个想法：为什么不自己搭建一个博客，把这些文章都放上去呢？于是，我开始了我的博客搭建之旅。
 这个想法已经在我脑海里盘旋了很久，2026年10月，终于开始了。
@@ -30,6 +32,9 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 在想一些不那么技术的事：把binggo之争放上来
 
 附一张最初的博客，希望以后能坚持更新，改头换面
+
+2026-10-15
+发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。
 ">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/record_of_build_myself_blog/">
@@ -159,18 +164,22 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
                 <a href="#%e5%bc%80%e5%a7%8b" aria-label="开始">开始</a><ul>
                     
             <li>
-                <a href="#1-%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89-hugo" aria-label="1. 为什么选 Hugo">1. 为什么选 Hugo</a></li>
+                <a href="#1-%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89-hugo%e5%92%8cpapermod-%e4%b8%bb%e9%a2%98" aria-label="1. 为什么选 Hugo和PaperMod 主题">1. 为什么选 Hugo和PaperMod 主题</a></li>
             <li>
-                <a href="#2-%e4%b8%ba%e4%bb%80%e4%b9%88%e9%80%89-papermod-%e4%b8%bb%e9%a2%98" aria-label="2. 为什么选 PaperMod 主题">2. 为什么选 PaperMod 主题</a></li>
+                <a href="#2-%e9%83%a8%e7%bd%b2%e5%88%b0-github-pages" aria-label="2. 部署到 GitHub Pages">2. 部署到 GitHub Pages</a></li>
             <li>
-                <a href="#3-%e9%83%a8%e7%bd%b2%e5%88%b0-github-pages" aria-label="3. 部署到 GitHub Pages">3. 部署到 GitHub Pages</a></li>
-            <li>
-                <a href="#4-%e9%81%87%e5%88%b0%e7%9a%84%e9%97%ae%e9%a2%98" aria-label="4. 遇到的问题">4. 遇到的问题</a></li>
-            <li>
-                <a href="#5-%e6%90%ad%e5%bb%ba%e8%ae%b0%e5%bd%95" aria-label="5. 搭建记录">5. 搭建记录</a><ul>
+                <a href="#3-%e9%81%87%e5%88%b0%e7%9a%84%e9%97%ae%e9%a2%98" aria-label="3. 遇到的问题">3. 遇到的问题</a><ul>
                     
             <li>
-                <a href="#2026-10-14-%e5%bc%80%e5%a7%8b%e6%90%ad%e5%bb%ba" aria-label="2026-10-14 开始搭建">2026-10-14 开始搭建</a>
+                <a href="#%e6%96%87%e4%bb%b6%e5%9b%be%e7%89%87%e7%9a%84%e9%93%be%e6%8e%a5%e5%88%b0%e5%ba%95%e8%83%bd%e4%b8%8d%e8%83%bd%e7%94%a8%e4%b8%ad%e6%96%87" aria-label="文件图片的链接到底能不能用中文？">文件图片的链接到底能不能用中文？</a></li></ul>
+            </li>
+            <li>
+                <a href="#4-%e6%90%ad%e5%bb%ba%e8%ae%b0%e5%bd%95" aria-label="4. 搭建记录">4. 搭建记录</a><ul>
+                    
+            <li>
+                <a href="#2026-10-14-%e5%bc%80%e5%a7%8b%e6%90%ad%e5%bb%ba" aria-label="2026-10-14 开始搭建">2026-10-14 开始搭建</a></li>
+            <li>
+                <a href="#2026-10-15" aria-label="2026-10-15">2026-10-15</a>
             </li>
         </ul>
         </li>
@@ -182,14 +191,16 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 
   <div class="post-content md-content"><h1 id="开始">开始<a hidden class="anchor" aria-hidden="true" href="#开始">#</a></h1>
 <p>这篇文章记录一下我搭建博客时踩过的坑&hellip;</p>
-<h2 id="1-为什么选-hugo">1. 为什么选 Hugo<a hidden class="anchor" aria-hidden="true" href="#1-为什么选-hugo">#</a></h2>
+<h2 id="1-为什么选-hugo和papermod-主题">1. 为什么选 Hugo和PaperMod 主题<a hidden class="anchor" aria-hidden="true" href="#1-为什么选-hugo和papermod-主题">#</a></h2>
 <p>因为我想要一个<strong>轻量级、快速、易于部署</strong>的博客系统。Hugo 是一个静态网站生成器，它可以将 Markdown 文件转换为 HTML 页面，生成的页面可以直接部署到 GitHub Pages 上，非常适合个人博客。</p>
-<h2 id="2-为什么选-papermod-主题">2. 为什么选 PaperMod 主题<a hidden class="anchor" aria-hidden="true" href="#2-为什么选-papermod-主题">#</a></h2>
 <p>PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应式设计、代码高亮等功能，非常适合技术博客。它的配置也比较简单。</p>
-<h2 id="3-部署到-github-pages">3. 部署到 GitHub Pages<a hidden class="anchor" aria-hidden="true" href="#3-部署到-github-pages">#</a></h2>
+<h2 id="2-部署到-github-pages">2. 部署到 GitHub Pages<a hidden class="anchor" aria-hidden="true" href="#2-部署到-github-pages">#</a></h2>
 <p>我选择将博客部署到 GitHub Pages，这样可以免费托管我的博客，并且可以通过 GitHub Actions 实现自动部署。每次我提交新的文章，GitHub Actions 会自动构建并部署我的博客，非常方便。</p>
-<h2 id="4-遇到的问题">4. 遇到的问题<a hidden class="anchor" aria-hidden="true" href="#4-遇到的问题">#</a></h2>
-<h2 id="5-搭建记录">5. 搭建记录<a hidden class="anchor" aria-hidden="true" href="#5-搭建记录">#</a></h2>
+<h2 id="3-遇到的问题">3. 遇到的问题<a hidden class="anchor" aria-hidden="true" href="#3-遇到的问题">#</a></h2>
+<h3 id="文件图片的链接到底能不能用中文">文件图片的链接到底能不能用中文？<a hidden class="anchor" aria-hidden="true" href="#文件图片的链接到底能不能用中文">#</a></h3>
+<p>有时候图片文件名中有中文时，图片就无法加载。但是很多截图、微信图片文件，图片文件名都会有中文。这个就很麻烦。</p>
+<p>但是有时候这个问题又不会出现，很奇怪。</p>
+<h2 id="4-搭建记录">4. 搭建记录<a hidden class="anchor" aria-hidden="true" href="#4-搭建记录">#</a></h2>
 <h3 id="2026-10-14-开始搭建">2026-10-14 开始搭建<a hidden class="anchor" aria-hidden="true" href="#2026-10-14-开始搭建">#</a></h3>
 <p>这一天，我闲着无聊，开始写CANN训练营的技术文章。既然文章都写好了，就萌生了一个想法：为什么不自己搭建一个博客，把这些文章都放上去呢？于是，我开始了我的博客搭建之旅。<br>
 这个想法已经在我脑海里盘旋了很久，2026年10月，终于开始了。</p>
@@ -204,6 +215,9 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 </ul>
 <p>附一张最初的博客，希望以后能坚持更新，改头换面
 <img loading="lazy" src="/posts/record_of_build_myself_blog/image1.png"></p>
+<h3 id="2026-10-15">2026-10-15<a hidden class="anchor" aria-hidden="true" href="#2026-10-15">#</a></h3>
+<p>发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。</p>
+<p><img alt="这是一个中文路径的图片文件，现在测试下" loading="lazy" src="/posts/record_of_build_myself_blog/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260420193736_332_8.jpg"></p>
 
 
   </div>
