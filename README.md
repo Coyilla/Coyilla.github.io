@@ -12,6 +12,10 @@ https://coyilla.github.io/
 - PaperMod 主题
 - GitHub Pages + GitHub Actions 自动部署  
 
+## 相关文档
+[分类规范](docs/categories-guide.md)
+[如何发帖·省流版](docs/how_to_post.md)
+
 ## 如何部署
 
 ### 克隆仓库

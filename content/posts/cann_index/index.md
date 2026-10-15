@@ -2,6 +2,9 @@
 date = '2026-10-15T10:49:27+08:00'
 draft = false
 title = '【CANN训练营】课堂笔记'
+categories = ["技术"]
+tags = ["学习笔记"]
+series = ["CANN训练营"]
 +++
 # day1上午 CANN基础
 ## PART1 人工智能基础
@@ -172,9 +175,33 @@ https://gitcode.com/cann/cannbot-skills
 同时，Cann-Learning-Hub：https://gitcode.com/cann/cann-learning-hub/tree/master/ 是我们精心打造的知识仓库，里面有大量的PDF、PPT、MD文档。有兴趣的同学可以翻找一下，肯定有你想要的东西，管够。
 
 # day3 大模型量化基础
+
 课件：见课表
-# day4 异构计算与Ascend C算子编程导论
+
+产出：
+
+https://coyilla.github.io/cann_qwen3_8b_1
+
+https://coyilla.github.io/cann_qwen3_8b_2_3
+
+# day4上午 异构计算与Ascend C算子编程导论
 课件：
+
 https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/06_a2a3_heterogeneous_computing_and_ascend_c_operator_programming_introduction.pptx  
+
 课程：
-https://gitcode.com/cann/cann-learning-hub/blob/master/tutorials/ascendc_operator_development/README.md  
+
+https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light
+
+# day4下午 02-Ascend C SIMD 算子编程模型介绍
+
+课件：
+
+https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/07_a2a3_ascend_c_simd_programming_model.pptx  
+
+收到CANN挑战赛的参赛通知，这个题目居然只剩两天了就截止了  
+https://competition.gitcode.com/competition/2094721134930419714/intro
+
+产出：
+
+https://coyilla.github.io/cann_ascend_c_basic_note

@@ -2,6 +2,8 @@
 date = '2026-10-15T09:21:09+08:00'
 draft = false
 title = 'GitHub Copilot 使用指南'
+categories = ["技术"]
+tags = ["Copilot","工具"]
 +++
 
 # GitHub Copilot 使用指南

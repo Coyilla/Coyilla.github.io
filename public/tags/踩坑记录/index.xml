@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>踩坑记录 on Coyilla的技术随想录</title>
+    <link>http://localhost:1313/tags/%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/</link>
+    <description>Recent content in 踩坑记录 on Coyilla的技术随想录</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 14 Oct 2026 23:05:01 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>个人博客搭建记录</title>
+      <link>http://localhost:1313/posts/record_of_build_myself_blog/</link>
+      <pubDate>Wed, 14 Oct 2026 23:05:01 +0800</pubDate>
+      <guid>http://localhost:1313/posts/record_of_build_myself_blog/</guid>
+      <description>&lt;h1 id=&#34;开始&#34;&gt;开始&lt;/h1&gt;
+&lt;p&gt;这篇文章记录一下我搭建博客时踩过的坑&amp;hellip;&lt;/p&gt;
+&lt;h2 id=&#34;1-为什么选-hugo和papermod-主题&#34;&gt;1. 为什么选 Hugo和PaperMod 主题&lt;/h2&gt;
+&lt;p&gt;因为我想要一个&lt;strong&gt;轻量级、快速、易于部署&lt;/strong&gt;的博客系统。Hugo 是一个静态网站生成器，它可以将 Markdown 文件转换为 HTML 页面，生成的页面可以直接部署到 GitHub Pages 上，非常适合个人博客。&lt;/p&gt;
+&lt;p&gt;PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应式设计、代码高亮等功能，非常适合技术博客。它的配置也比较简单。&lt;/p&gt;
+&lt;h2 id=&#34;2-部署到-github-pages&#34;&gt;2. 部署到 GitHub Pages&lt;/h2&gt;
+&lt;p&gt;我选择将博客部署到 GitHub Pages，这样可以免费托管我的博客，并且可以通过 GitHub Actions 实现自动部署。每次我提交新的文章，GitHub Actions 会自动构建并部署我的博客，非常方便。&lt;/p&gt;
+&lt;h2 id=&#34;3-遇到的问题&#34;&gt;3. 遇到的问题&lt;/h2&gt;
+&lt;h3 id=&#34;文件图片的链接到底能不能用中文&#34;&gt;文件图片的链接到底能不能用中文？&lt;/h3&gt;
+&lt;p&gt;有时候图片文件名中有中文时，图片就无法加载。但是很多截图、微信图片文件，图片文件名都会有中文。这个就很麻烦。&lt;/p&gt;
+&lt;p&gt;但是有时候这个问题又不会出现，很奇怪。&lt;/p&gt;
+&lt;h2 id=&#34;4-搭建记录&#34;&gt;4. 搭建记录&lt;/h2&gt;
+&lt;h3 id=&#34;2026-10-14-开始搭建&#34;&gt;2026-10-14 开始搭建&lt;/h3&gt;
+&lt;p&gt;这一天，我闲着无聊，开始写CANN训练营的技术文章。既然文章都写好了，就萌生了一个想法：为什么不自己搭建一个博客，把这些文章都放上去呢？于是，我开始了我的博客搭建之旅。&lt;br&gt;
+这个想法已经在我脑海里盘旋了很久，2026年10月，终于开始了。&lt;/p&gt;
+&lt;p&gt;主要完成任务：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;搭建博客基础雏形，采用Hogo+PaperMod，完成带主页+目录的博客，成功部署到github上并准备好了域名&lt;/li&gt;
+&lt;li&gt;发表4篇文章作为试水&lt;/li&gt;
+&lt;li&gt;添加了bing的站点，现在bing上已经可以搜到博客了&lt;/li&gt;
+&lt;li&gt;发现别人的博客好好看&amp;hellip;我也想要&amp;hellip;慢慢做吧&lt;/li&gt;
+&lt;li&gt;起了个好听的名字：Coyilla的技术随想录&lt;/li&gt;
+&lt;li&gt;在想一些不那么技术的事：把binggo之争放上来&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;附一张最初的博客，希望以后能坚持更新，改头换面
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/image1.png&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;2026-10-15&#34;&gt;2026-10-15&lt;/h3&gt;
+&lt;p&gt;发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;这是一个中文路径的图片文件，现在测试下&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260420193736_332_8.jpg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;加了categories和tags&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -2,6 +2,9 @@
 date = '2026-10-14T22:38:38+08:00'
 draft = false
 title = '【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）'
+categories = ["技术"]
+tags = ["Qwen3-8B", "学习笔记"]
+series = ["CANN训练营"]
 +++
 
 # 1 简介

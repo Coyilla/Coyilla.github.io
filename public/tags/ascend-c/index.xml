@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Ascend C on Coyilla的技术随想录</title>
+    <link>http://localhost:1313/tags/ascend-c/</link>
+    <description>Recent content in Ascend C on Coyilla的技术随想录</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 15 Oct 2026 13:41:41 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/ascend-c/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CANN训练营】Ascend C算子开发基础知识碎碎念</title>
+      <link>http://localhost:1313/posts/cann_ascend_c_basic_note/</link>
+      <pubDate>Thu, 15 Oct 2026 13:41:41 +0800</pubDate>
+      <guid>http://localhost:1313/posts/cann_ascend_c_basic_note/</guid>
+      <description>&lt;p&gt;课程目录：
+&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&#34;&gt;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;-&amp;gt; 第二章：Ascend C算子开发基础知识的几个章节&lt;/p&gt;
+&lt;h1 id=&#34;0202_helloworld&#34;&gt;02.02_HelloWorld&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;notebooke&lt;/strong&gt;：&lt;/p&gt;
+&lt;p&gt;cann-learning-hub/tutorials/ascendc_operator_development_light/02_AscendC_basic/02.02_HelloWorld.ipynb&lt;/p&gt;
+&lt;p&gt;notebook里的每个代码块就是每次写一部分代码内容写到Sources/02.02/hello_world.asc中（同时附上每一部分的讲解），最后形成完整的helloworld代码，通过bisheng命令编译为二进制文件demo，最后执行，在八个块上打印hello world。&lt;/p&gt;
+&lt;p&gt;主要流程：（导入头文件） - 编写核函数 - 编写主函数调用 - 编译 - 运行&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;为什么会打印八次？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;因为核函数被8个AI Core并行执行。hello_world 是一个核函数（Kernel），它会被分发到多个AI Core上并行执行。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;hello_world&amp;lt;&amp;lt;&amp;lt;numBlocks, nullptr, stream&amp;gt;&amp;gt;&amp;gt;();  &lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这里的 numBlocks = 8 表示：将核函数分配到 8个AI Core​上同时执行,每个AI Core独立运行 hello_world函数体。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;为什么需要 aclrtSynchronizeStream？&lt;/strong&gt;
+&lt;code&gt;aclrtSynchronizeStream(stream);&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这行代码的作用是：
+让主机端（Host）等待所有AI Core上的核函数执行完毕，确保所有8次打印都完成后，程序才继续执行后续的清理工作。如果没有这行，程序可能会在核函数还没执行完时就退出，导致打印不完整。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;课堂练习&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;AscendC::printf(&amp;quot;Block[%lu/%lu] Hi Ascend\n&amp;quot;,AscendC::GetBlockIdx(),AscendC::GetBlockNum());&lt;/code&gt;&lt;/p&gt;
+&lt;h1 id=&#34;0203_ascendc_programming_paradigm_and_api_introduction&#34;&gt;02.03_ascendc_programming_paradigm_and_api_introduction&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;基本的矢量编程范式：Ascend C编程范式：CopyIn（数据搬入）、Compute（矢量计算）、CopyOut（结果搬出）&lt;/li&gt;
+&lt;li&gt;基本的矩阵编程范式：CopyIn（数据搬入）、Split（数据分片）、Compute（子矩阵计算）、Aggregate（结果聚合）、CopyOut（结果搬出）&lt;/li&gt;
+&lt;li&gt;复杂的矢量/矩阵编程范式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;0204_introduction_to_kernel_functions_based_on_add_operator&#34;&gt;02.04_introduction_to_kernel_functions_based_on_add_operator&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;习题：sub算子开发&lt;/strong&gt;
+sub_kernel.asc&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;add作业题&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;尝试自己努力，然后很悲惨的失败了&amp;hellip;&lt;/p&gt;
+&lt;p&gt;在csdn上找到了大佬的笔记：https://blog.csdn.net/liupang14159/article/details/166738282?spm=1001.2014.3001.5502&lt;/p&gt;
+&lt;p&gt;再一次感受到自己有多么差劲，有一次绊倒在代码上，当年的acm也是，现在的算子开发也是..&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

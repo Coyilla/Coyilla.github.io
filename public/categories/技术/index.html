@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>技术 | Coyilla的技术随想录</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/categories/%E6%8A%80%E6%9C%AF/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/categories/%E6%8A%80%E6%9C%AF/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/categories/%E6%8A%80%E6%9C%AF/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body class="list" id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Coyilla的技术随想录 (Alt + H)">Coyilla的技术随想录</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/" title="首页">
+                    <span>首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    技术
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【CANN训练营】Ascend C算子开发基础知识碎碎念
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>课程目录： https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light
+-&gt; 第二章：Ascend C算子开发基础知识的几个章节
+02.02_HelloWorld notebooke：
+cann-learning-hub/tutorials/ascendc_operator_development_light/02_AscendC_basic/02.02_HelloWorld.ipynb
+notebook里的每个代码块就是每次写一部分代码内容写到Sources/02.02/hello_world.asc中（同时附上每一部分的讲解），最后形成完整的helloworld代码，通过bisheng命令编译为二进制文件demo，最后执行，在八个块上打印hello world。
+主要流程：（导入头文件） - 编写核函数 - 编写主函数调用 - 编译 - 运行
+为什么会打印八次？
+因为核函数被8个AI Core并行执行。hello_world 是一个核函数（Kernel），它会被分发到多个AI Core上并行执行。
+hello_world&lt;&lt;&lt;numBlocks, nullptr, stream&gt;&gt;&gt;(); 这里的 numBlocks = 8 表示：将核函数分配到 8个AI Core​上同时执行,每个AI Core独立运行 hello_world函数体。
+为什么需要 aclrtSynchronizeStream？ aclrtSynchronizeStream(stream);
+这行代码的作用是： 让主机端（Host）等待所有AI Core上的核函数执行完毕，确保所有8次打印都完成后，程序才继续执行后续的清理工作。如果没有这行，程序可能会在核函数还没执行完时就退出，导致打印不完整。
+课堂练习
+AscendC::printf(&#34;Block[%lu/%lu] Hi Ascend\n&#34;,AscendC::GetBlockIdx(),AscendC::GetBlockNum());
+02.03_ascendc_programming_paradigm_and_api_introduction 基本的矢量编程范式：Ascend C编程范式：CopyIn（数据搬入）、Compute（矢量计算）、CopyOut（结果搬出） 基本的矩阵编程范式：CopyIn（数据搬入）、Split（数据分片）、Compute（子矩阵计算）、Aggregate（结果聚合）、CopyOut（结果搬出） 复杂的矢量/矩阵编程范式 02.04_introduction_to_kernel_functions_based_on_add_operator 习题：sub算子开发 sub_kernel.asc
+add作业题
+尝试自己努力，然后很悲惨的失败了…
+在csdn上找到了大佬的笔记：https://blog.csdn.net/liupang14159/article/details/166738282?spm=1001.2014.3001.5502
+再一次感受到自己有多么差劲，有一次绊倒在代码上，当年的acm也是，现在的算子开发也是..
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-15 13:41:41 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+  <a class="entry-link" aria-label="post link to 【CANN训练营】Ascend C算子开发基础知识碎碎念" href="http://localhost:1313/posts/cann_ascend_c_basic_note/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【CANN训练营】课堂笔记
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>day1上午 CANN基础 PART1 人工智能基础 人工智能起源 图灵测试 图灵 达特茅斯会议 麦卡锡 人工智能发展 从“感知理解世界”向“生成创造世界”扩展
+上世纪 达特茅斯会议 1997 深蓝机器人战胜人类 2015 视觉识别超过人类 2020 蛋白质检查 2023 chatgpt出现 概念理解：人工智能、机器学习和深度学习 人工智能核心三要素：数据&#43;算法&#43;算力 算力：身体 算法：大脑 数据：粮食 算法理论基础：业务抽象成数据模型的表达式 建模-训练-微调-推理
+神经网络算法的发明是现代人工智能的开端 模拟神经元
+权重-激活-状态
+基于向前传播和向后传播的神经网络开启了现代AI的大发展
+神经网络——2012年ImageNet取得巨大突破，被往返认为现代AI的开始 海量数据&#43;神经网络算法&#43;大算力=现代AI
+概念理解：训练和推理 开发态-AI训练：通过大量数据学习“规则”形成模型/算法 部署态-AI推理：利用已经训练好的“规则”完成具体任务 从算法为中心到以数据为中心，是AI大模型所带来的重大范式转移 AI=Code&#43;Data
+数据的质量，决定了算法性能的上限。
+人工智能概念：计算图、算子 计算图本质上是一个有向图，由节点（Node）和边（Edge）组成
+子（Operator，简称 Op）是计算图中的基本计算单元
+算子 算子名称 算子裂隙 数据容器：张量 张量 Tensor是存储算子输入数据与输出数据的容器
+名称 name 形状 shape 数据类型 dtype 数据排布格式 format：4D格式 小结 AI模型=计算图=算子组合-&gt;
+PART2 什么是NPU 为什么要NPU 计算密集。计算任务大，操作逻辑简单 数据并行。操作独立，可同时处理 低精度可接受。AI对计算误差有较高容忍度。使用半精度或整数即可获得足够好的结果 昇腾NPU：AI计算的发动机 华为昇腾AI芯片，采用达芬奇架构，集成超大规模的计算单元，是支撑AI全场景应用的核心硬件基础
+CPU vs NPU：算力差距有多大 16*16矩阵：
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-15 10:49:27 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to 【CANN训练营】课堂笔记" href="http://localhost:1313/posts/cann_index/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">GitHub Copilot 使用指南
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>GitHub Copilot 使用指南 适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI
+核心形态：Inline Completion（补全） &#43; Inline Chat（行内对话） &#43; Copilot Chat（侧边栏对话） &#43; Edit Mode（多文件编辑） &#43; Agent Mode（自主代理） &#43; Cloud Coding Agent（云端建 PR）
+1. 先建立心智模型 GitHub Copilot 不是“一个聊天框”，而是一套分层能力：
+层级 名字 你在干嘛 Copilot 在干嘛 L0 Autocomplete 写代码 在光标处补下一行/下一段 L1 Inline Chat 选中代码改代码 在当前文件里做定向修改 L2 Copilot Chat 问项目/问报错/问架构 读上下文，给解释、代码、命令 L3 Edit Mode 改几个文件 按你给的范围做受控编辑 L4 Agent Mode 给目标，不管步骤 自己读文件、跑命令、修错、迭代 L5 Coding Agent 给 issue / PR 描述 云端开分支、改代码、跑测试、提 PR 一句话总结：
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-15 09:21:09 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>8 min</span></footer>
+  <a class="entry-link" aria-label="post link to GitHub Copilot 使用指南" href="http://localhost:1313/posts/how_to_use_copilot/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">个人博客搭建记录
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>开始 这篇文章记录一下我搭建博客时踩过的坑…
+1. 为什么选 Hugo和PaperMod 主题 因为我想要一个轻量级、快速、易于部署的博客系统。Hugo 是一个静态网站生成器，它可以将 Markdown 文件转换为 HTML 页面，生成的页面可以直接部署到 GitHub Pages 上，非常适合个人博客。
+PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应式设计、代码高亮等功能，非常适合技术博客。它的配置也比较简单。
+2. 部署到 GitHub Pages 我选择将博客部署到 GitHub Pages，这样可以免费托管我的博客，并且可以通过 GitHub Actions 实现自动部署。每次我提交新的文章，GitHub Actions 会自动构建并部署我的博客，非常方便。
+3. 遇到的问题 文件图片的链接到底能不能用中文？ 有时候图片文件名中有中文时，图片就无法加载。但是很多截图、微信图片文件，图片文件名都会有中文。这个就很麻烦。
+但是有时候这个问题又不会出现，很奇怪。
+4. 搭建记录 2026-10-14 开始搭建 这一天，我闲着无聊，开始写CANN训练营的技术文章。既然文章都写好了，就萌生了一个想法：为什么不自己搭建一个博客，把这些文章都放上去呢？于是，我开始了我的博客搭建之旅。
+这个想法已经在我脑海里盘旋了很久，2026年10月，终于开始了。
+主要完成任务：
+搭建博客基础雏形，采用Hogo&#43;PaperMod，完成带主页&#43;目录的博客，成功部署到github上并准备好了域名 发表4篇文章作为试水 添加了bing的站点，现在bing上已经可以搜到博客了 发现别人的博客好好看…我也想要…慢慢做吧 起了个好听的名字：Coyilla的技术随想录 在想一些不那么技术的事：把binggo之争放上来 附一张最初的博客，希望以后能坚持更新，改头换面 2026-10-15 发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。
+加了categories和tags
+</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-14 23:05:01 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+  <a class="entry-link" aria-label="post link to 个人博客搭建记录" href="http://localhost:1313/posts/record_of_build_myself_blog/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1 简介 见【CANN训练营】Qwen3-8B 推理优化实践食用指南
+2 Baseline跑通 notebook地址：gitcode.com/cann/cann-learning-hub/tutorials/llm_inference/qwen3_8b/02_baseline_inference.ipynb
+2.1 环境与工作区准备 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 import json import os import subprocess import sys from pathlib import Path print(&#39;[环境准备] 开始&#39;, flush=True) os.environ.setdefault(&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;, &#39;modelscope&#39;) os.environ[&#39;TOKENIZERS_PARALLELISM&#39;] = &#39;false&#39; os.environ.setdefault(&#39;ASCEND_RT_VISIBLE_DEVICES&#39;, &#39;0&#39;) def locate_repo_root(): repo_roots = [] for env_name in (&#39;GITCODE_REPO_ROOT&#39;, &#39;CANN_LEARNING_HUB_ROOT&#39;, &#39;REPO_ROOT&#39;): if os.environ.get(env_name): repo_roots.append(Path(os.environ[env_name])) try: cwd = Path.cwd() lineage = [cwd, *cwd.parents] repo_roots.extend(lineage) repo_roots.extend(base / &#39;cann-learning-hub&#39; for base in lineage) for base in lineage: try: repo_roots.extend(base.glob(&#39;*/cann-learning-hub&#39;)) except OSError: pass except FileNotFoundError: pass repo_roots.append(Path(&#39;/opt/atomgit/cann-learning-hub&#39;)) seen = set() for repo_root in repo_roots: key = str(repo_root) if key in seen: continue seen.add(key) if (repo_root / &#39;tutorials/llm_inference/qwen3_8b/src&#39;).exists(): return repo_root raise FileNotFoundError(&#39;Cannot locate cann-learning-hub repository root. Open this notebook inside cann-learning-hub or set CANN_LEARNING_HUB_ROOT to the repository root.&#39;) REPO_ROOT = locate_repo_root() os.chdir(REPO_ROOT) TUTORIAL_DIR = REPO_ROOT / &#39;tutorials&#39; / &#39;llm_inference&#39; / &#39;qwen3_8b&#39; SRC_DIR = TUTORIAL_DIR / &#39;src&#39; SOURCE_DIR = REPO_ROOT / &#39;Sources&#39; / &#39;model_inference_optimization&#39; / &#39;qwen3_8b&#39; SOURCE_DIR.mkdir(parents=True, exist_ok=True) if str(SRC_DIR) not in sys.path: sys.path.insert(0, str(SRC_DIR)) from inference_scripts.environment_check import find_unmet_requirements, read_pinned_requirements if not os.environ.get(&#39;ASCEND_TOOLKIT_HOME&#39;): raise EnvironmentError(&#39;ASCEND_TOOLKIT_HOME is not set. Please activate the CANN environment before running this notebook.&#39;) cann_script = Path(os.environ[&#39;ASCEND_TOOLKIT_HOME&#39;]) / &#39;set_env.sh&#39; env_cmd = f&#39;source {cann_script} &amp;&amp; env&#39; env = subprocess.check_output(f&#34;bash -lc &#39;{env_cmd}&#39;&#34;, shell=True, text=True, cwd=REPO_ROOT) for line in env.splitlines(): if &#39;=&#39; in line: os.environ.__setitem__(*line.split(&#39;=&#39;, 1)) REQUIREMENTS_FILE = TUTORIAL_DIR / &#39;requirements.txt&#39; pinned_requirements = read_pinned_requirements(REQUIREMENTS_FILE) unmet_requirements = find_unmet_requirements(pinned_requirements) if unmet_requirements: print(&#39;[依赖检查] 以下依赖缺失或版本不匹配：&#39;) for name, actual, expected in unmet_requirements: print(f&#39; - {name}: 当前={actual or &#34;未安装&#34;}, 要求={expected}&#39;) requirements_to_install = [f&#39;{name}=={expected}&#39; for name, _, expected in unmet_requirements] subprocess.run( [ sys.executable, &#39;-m&#39;, &#39;pip&#39;, &#39;install&#39;, &#39;-i&#39;, &#39;https://pypi.tuna.tsinghua.edu.cn/simple&#39;, &#39;--extra-index-url&#39;, &#39;https://download.pytorch.org/whl/cpu&#39;, &#39;--trusted-host&#39;, &#39;pypi.tuna.tsinghua.edu.cn&#39;, *requirements_to_install, ], check=True, ) remaining = find_unmet_requirements(pinned_requirements) if remaining: details = &#39;, &#39;.join(f&#39;{name}: {actual or &#34;未安装&#34;} != {expected}&#39; for name, actual, expected in remaining) raise RuntimeError(f&#39;依赖安装后仍不满足统一版本：{details}&#39;) print(&#39;[依赖检查] 安装完成，统一环境已满足&#39;) else: print(&#39;[依赖检查] 所有依赖版本均满足，跳过安装&#39;) RECIPE_ROOT = SRC_DIR / &#39;inference_scripts&#39; / &#39;recipe_qwen3_8b&#39; RECIPE_CONFIG_DIR = RECIPE_ROOT / &#39;models&#39; / &#39;qwen&#39; / &#39;config&#39; BASELINE_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp.yaml&#39; PROFILE_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp_profile.yaml&#39; OPTIMIZED_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp_add_rmsnorm.yaml&#39; INFER_SH = RECIPE_ROOT / &#39;executor&#39; / &#39;scripts&#39; / &#39;infer.sh&#39; MODEL_ID = os.environ.get(&#39;QWEN3_8B_MODEL_PATH&#39;) or &#39;Qwen/Qwen3-8B&#39; MODEL_SOURCE_HINT = &#39;local_path&#39; if os.environ.get(&#39;QWEN3_8B_MODEL_PATH&#39;) else os.environ[&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;] print(&#39;仓库目录 =&#39;, REPO_ROOT) print(&#39;教程目录 =&#39;, TUTORIAL_DIR) print(&#39;运行目录 =&#39;, SOURCE_DIR) print(&#39;recipes 目录 =&#39;, RECIPE_ROOT) print(&#39;YAML 目录 =&#39;, RECIPE_CONFIG_DIR) print(&#39;推理入口 =&#39;, INFER_SH) print(&#39;可见 NPU =&#39;, os.environ.get(&#39;ASCEND_RT_VISIBLE_DEVICES&#39;)) print(&#39;[环境准备] 完成&#39;, flush=True) 这段代码是整个教程的环境准备阶段，核心目标是：把当前 Notebook 进程配置成“可以在昇腾 NPU 上跑 Qwen3-8B 推理”的完整环境。
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-14 22:38:38 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span></footer>
+  <a class="entry-link" aria-label="post link to 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）" href="http://localhost:1313/posts/cann_qwen3_8b_2_3/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【CANN训练营】Qwen3-8B 推理优化实践食用指南
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>课程内容 课程资源：cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit
+这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：
+用 cann-recipes-infer 框架跑通推理和性能分析，验证 Dense RMSNorm 融合路径的效果 用 AMCT 工具做 W8A8 量化，并开发自定义量化matmul算子 对比三种执行模式（Eager、GE Graph、NPU Graph EX），并在 GE 图模式下验证 Fused Attention 预取权重的收益 整个流程按 recipes 的标准用法走：先改 models/ qwen /config/ 下的 YAML 配置，再用 executor/scripts/infer.sh 启动推理，最后从 res/ 和 prof/ 目录看结果。
+主要就是看课程里的readme，一步步跟着notebook的内容运行代码。
+大部分内容都可以看qwen3_8b/README.md，里面写的非常详细。这篇文章主要讲一下容易遇到的问题，和实践过程中的笔记内容。
+环境启动 主要有两种方式：
+1. CANNLab（推荐） 就是云环境，有100小时的免费使用时长，也是比较推荐的，具体配置看下面：
+cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learning-hub:基于 CANN 生态的学习中心项目 - AtomGit
+2. 本地部署 这个需要有昇腾 NPU，CANN9.0.0以上。
+...</p>
+  </div>
+  <footer class="entry-footer">
+
+<span title='2026-10-14 20:13:41 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+  <a class="entry-link" aria-label="post link to 【CANN训练营】Qwen3-8B 推理优化实践食用指南" href="http://localhost:1313/posts/cann_qwen3_8b_1/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Coyilla的技术随想录</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

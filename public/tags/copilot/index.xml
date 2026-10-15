@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Copilot on Coyilla的技术随想录</title>
+    <link>http://localhost:1313/tags/copilot/</link>
+    <description>Recent content in Copilot on Coyilla的技术随想录</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 15 Oct 2026 09:21:09 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/copilot/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GitHub Copilot 使用指南</title>
+      <link>http://localhost:1313/posts/how_to_use_copilot/</link>
+      <pubDate>Thu, 15 Oct 2026 09:21:09 +0800</pubDate>
+      <guid>http://localhost:1313/posts/how_to_use_copilot/</guid>
+      <description>&lt;h1 id=&#34;github-copilot-使用指南&#34;&gt;GitHub Copilot 使用指南&lt;/h1&gt;
+&lt;p&gt;适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI&lt;/p&gt;
+&lt;p&gt;核心形态：Inline Completion（补全） + Inline Chat（行内对话） + Copilot Chat（侧边栏对话） + Edit Mode（多文件编辑） + Agent Mode（自主代理） + Cloud Coding Agent（云端建 PR）&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;1-先建立心智模型&#34;&gt;1. 先建立心智模型&lt;/h2&gt;
+&lt;p&gt;GitHub Copilot 不是“一个聊天框”，而是一套分层能力：&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;层级&lt;/th&gt;
+					&lt;th&gt;名字&lt;/th&gt;
+					&lt;th&gt;你在干嘛&lt;/th&gt;
+					&lt;th&gt;Copilot 在干嘛&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L0&lt;/td&gt;
+					&lt;td&gt;Autocomplete&lt;/td&gt;
+					&lt;td&gt;写代码&lt;/td&gt;
+					&lt;td&gt;在光标处补下一行/下一段&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L1&lt;/td&gt;
+					&lt;td&gt;Inline Chat&lt;/td&gt;
+					&lt;td&gt;选中代码改代码&lt;/td&gt;
+					&lt;td&gt;在当前文件里做定向修改&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L2&lt;/td&gt;
+					&lt;td&gt;Copilot Chat&lt;/td&gt;
+					&lt;td&gt;问项目/问报错/问架构&lt;/td&gt;
+					&lt;td&gt;读上下文，给解释、代码、命令&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L3&lt;/td&gt;
+					&lt;td&gt;Edit Mode&lt;/td&gt;
+					&lt;td&gt;改几个文件&lt;/td&gt;
+					&lt;td&gt;按你给的范围做受控编辑&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L4&lt;/td&gt;
+					&lt;td&gt;Agent Mode&lt;/td&gt;
+					&lt;td&gt;给目标，不管步骤&lt;/td&gt;
+					&lt;td&gt;自己读文件、跑命令、修错、迭代&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;L5&lt;/td&gt;
+					&lt;td&gt;Coding Agent&lt;/td&gt;
+					&lt;td&gt;给 issue / PR 描述&lt;/td&gt;
+					&lt;td&gt;云端开分支、改代码、跑测试、提 PR&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;一句话总结：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

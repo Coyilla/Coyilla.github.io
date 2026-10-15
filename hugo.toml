@@ -24,6 +24,11 @@ title = 'Coyilla的技术随想录'
   [[menu.main]]
     name = "标签"
     url = "/tags/"
+    weight = 4
+  [[menu.main]]
+    identifier = "categories"
+    name = "分类"
+    url = "/categories/"
     weight = 3
 
 [markup]
@@ -31,3 +36,8 @@ title = 'Coyilla的技术随想录'
     codeFences = true
     lineNos = true
     style = "github"
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  series = "series"
