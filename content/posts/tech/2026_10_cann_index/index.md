@@ -212,3 +212,23 @@ https://coyilla.github.io/posts/tech/2026_10_cann_ascend_c_basic_note
 
 https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/08_a2a3_ascend_c_simd_memory_vector_operator_programming.pptx 
 
+下午：
+
+做sigmoid的算子开发
+
+简单版：https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development 2.5 
+
+困难版：https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light 2.9
+
+参考
+https://www.hiascend.com/document/detail/zh/canncommercial/700/operatordev/Ascendcopdevg/atlas_ascendc_10_0006.html
+
+发现：
+`AscendC::Duplicate<float>(yLocal, (float)1, this->tileLength);
+AscendC::Div(yLocal, yLocal, xLocal, this->tileLength);`和`AscendC:Reciprocal(yLocal, xLocal, this->tileLength);`计算结果不一样。
+
+原因：
+Div(1, x) 是真除法，Reciprocal(x) 是近似倒数。数学上等价，但精度和性能不同。
+
+写了半天才写出来，纪念一下：
+![alt text](image.png)
