@@ -99,4 +99,4 @@ python -m ipykernel install --user --name=venv --display-name="Python (venv)"
 
 ### 其他
 
-[【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）](https://blog.csdn.net/Coyilla/article/details/167913567?spm=1011.2124.3001.6209)
+[【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）](https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_2_3)

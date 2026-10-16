@@ -10,9 +10,9 @@
     <atom:link href="http://localhost:1313/tags/%E7%AE%97%E5%AD%90%E5%BC%80%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>【CANN训练营】Ascend C算子开发基础知识碎碎念</title>
-      <link>http://localhost:1313/posts/cann_ascend_c_basic_note/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/</link>
       <pubDate>Thu, 15 Oct 2026 13:41:41 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_ascend_c_basic_note/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/</guid>
       <description>&lt;p&gt;课程目录：
 &lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&#34;&gt;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;-&amp;gt; 第二章：Ascend C算子开发基础知识的几个章节&lt;/p&gt;

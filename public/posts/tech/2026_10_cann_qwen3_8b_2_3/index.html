@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） | Coyilla的技术随想录</title>
+<meta name="keywords" content="Qwen3-8B, 学习笔记">
+<meta name="description" content="1 简介
+见【CANN训练营】Qwen3-8B 推理优化实践食用指南
+2 Baseline跑通
+notebook地址：gitcode.com/cann/cann-learning-hub/tutorials/llm_inference/qwen3_8b/02_baseline_inference.ipynb
+2.1 环境与工作区准备
+
+
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+ 
+print(&#39;[环境准备] 开始&#39;, flush=True)
+os.environ.setdefault(&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;, &#39;modelscope&#39;)
+os.environ[&#39;TOKENIZERS_PARALLELISM&#39;] = &#39;false&#39;
+os.environ.setdefault(&#39;ASCEND_RT_VISIBLE_DEVICES&#39;, &#39;0&#39;)
+ 
+def locate_repo_root():
+    repo_roots = []
+    for env_name in (&#39;GITCODE_REPO_ROOT&#39;, &#39;CANN_LEARNING_HUB_ROOT&#39;, &#39;REPO_ROOT&#39;):
+        if os.environ.get(env_name):
+            repo_roots.append(Path(os.environ[env_name]))
+    try:
+        cwd = Path.cwd()
+        lineage = [cwd, *cwd.parents]
+        repo_roots.extend(lineage)
+        repo_roots.extend(base / &#39;cann-learning-hub&#39; for base in lineage)
+        for base in lineage:
+            try:
+                repo_roots.extend(base.glob(&#39;*/cann-learning-hub&#39;))
+            except OSError:
+                pass
+    except FileNotFoundError:
+        pass
+    repo_roots.append(Path(&#39;/opt/atomgit/cann-learning-hub&#39;))
+ 
+    seen = set()
+    for repo_root in repo_roots:
+        key = str(repo_root)
+        if key in seen:
+            continue
+        seen.add(key)
+        if (repo_root / &#39;tutorials/llm_inference/qwen3_8b/src&#39;).exists():
+            return repo_root
+    raise FileNotFoundError(&#39;Cannot locate cann-learning-hub repository root. Open this notebook inside cann-learning-hub or set CANN_LEARNING_HUB_ROOT to the repository root.&#39;)
+ 
+REPO_ROOT = locate_repo_root()
+os.chdir(REPO_ROOT)
+TUTORIAL_DIR = REPO_ROOT / &#39;tutorials&#39; / &#39;llm_inference&#39; / &#39;qwen3_8b&#39;
+SRC_DIR = TUTORIAL_DIR / &#39;src&#39;
+SOURCE_DIR = REPO_ROOT / &#39;Sources&#39; / &#39;model_inference_optimization&#39; / &#39;qwen3_8b&#39;
+SOURCE_DIR.mkdir(parents=True, exist_ok=True)
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+from inference_scripts.environment_check import find_unmet_requirements, read_pinned_requirements
+ 
+if not os.environ.get(&#39;ASCEND_TOOLKIT_HOME&#39;):
+    raise EnvironmentError(&#39;ASCEND_TOOLKIT_HOME is not set. Please activate the CANN environment before running this notebook.&#39;)
+cann_script = Path(os.environ[&#39;ASCEND_TOOLKIT_HOME&#39;]) / &#39;set_env.sh&#39;
+env_cmd = f&#39;source {cann_script} &amp;&amp; env&#39;
+env = subprocess.check_output(f&#34;bash -lc &#39;{env_cmd}&#39;&#34;, shell=True, text=True, cwd=REPO_ROOT)
+for line in env.splitlines():
+    if &#39;=&#39; in line:
+        os.environ.__setitem__(*line.split(&#39;=&#39;, 1))
+ 
+REQUIREMENTS_FILE = TUTORIAL_DIR / &#39;requirements.txt&#39;
+ 
+pinned_requirements = read_pinned_requirements(REQUIREMENTS_FILE)
+unmet_requirements = find_unmet_requirements(pinned_requirements)
+if unmet_requirements:
+    print(&#39;[依赖检查] 以下依赖缺失或版本不匹配：&#39;)
+    for name, actual, expected in unmet_requirements:
+        print(f&#39;  - {name}: 当前={actual or &#34;未安装&#34;}, 要求={expected}&#39;)
+    requirements_to_install = [f&#39;{name}=={expected}&#39; for name, _, expected in unmet_requirements]
+    subprocess.run(
+        [
+            sys.executable, &#39;-m&#39;, &#39;pip&#39;, &#39;install&#39;,
+            &#39;-i&#39;, &#39;https://pypi.tuna.tsinghua.edu.cn/simple&#39;,
+            &#39;--extra-index-url&#39;, &#39;https://download.pytorch.org/whl/cpu&#39;,
+            &#39;--trusted-host&#39;, &#39;pypi.tuna.tsinghua.edu.cn&#39;,
+            *requirements_to_install,
+        ],
+        check=True,
+    )
+    remaining = find_unmet_requirements(pinned_requirements)
+    if remaining:
+        details = &#39;, &#39;.join(f&#39;{name}: {actual or &#34;未安装&#34;} != {expected}&#39; for name, actual, expected in remaining)
+        raise RuntimeError(f&#39;依赖安装后仍不满足统一版本：{details}&#39;)
+    print(&#39;[依赖检查] 安装完成，统一环境已满足&#39;)
+else:
+    print(&#39;[依赖检查] 所有依赖版本均满足，跳过安装&#39;)
+ 
+RECIPE_ROOT = SRC_DIR / &#39;inference_scripts&#39; / &#39;recipe_qwen3_8b&#39;
+RECIPE_CONFIG_DIR = RECIPE_ROOT / &#39;models&#39; / &#39;qwen&#39; / &#39;config&#39;
+BASELINE_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp.yaml&#39;
+PROFILE_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp_profile.yaml&#39;
+OPTIMIZED_YAML_TEMPLATE = RECIPE_CONFIG_DIR / &#39;qwen3_8b_1tp_add_rmsnorm.yaml&#39;
+INFER_SH = RECIPE_ROOT / &#39;executor&#39; / &#39;scripts&#39; / &#39;infer.sh&#39;
+MODEL_ID = os.environ.get(&#39;QWEN3_8B_MODEL_PATH&#39;) or &#39;Qwen/Qwen3-8B&#39;
+MODEL_SOURCE_HINT = &#39;local_path&#39; if os.environ.get(&#39;QWEN3_8B_MODEL_PATH&#39;) else os.environ[&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;]
+ 
+print(&#39;仓库目录 =&#39;, REPO_ROOT)
+print(&#39;教程目录 =&#39;, TUTORIAL_DIR)
+print(&#39;运行目录 =&#39;, SOURCE_DIR)
+print(&#39;recipes 目录 =&#39;, RECIPE_ROOT)
+print(&#39;YAML 目录 =&#39;, RECIPE_CONFIG_DIR)
+print(&#39;推理入口 =&#39;, INFER_SH)
+print(&#39;可见 NPU =&#39;, os.environ.get(&#39;ASCEND_RT_VISIBLE_DEVICES&#39;))
+print(&#39;[环境准备] 完成&#39;, flush=True)
+
+
+这段代码是整个教程的环境准备阶段，核心目标是：把当前 Notebook 进程配置成“可以在昇腾 NPU 上跑 Qwen3-8B 推理”的完整环境。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Coyilla的技术随想录 (Alt + H)">Coyilla的技术随想录</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/" title="首页">
+                    <span>首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-10-14 22:38:38 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span>
+
+</div>
+  </header> <details class="toc"  open>
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#1-%e7%ae%80%e4%bb%8b" aria-label="1 简介">1 简介</a></li>
+            <li>
+                <a href="#2-baseline%e8%b7%91%e9%80%9a" aria-label="2 Baseline跑通">2 Baseline跑通</a><ul>
+                    
+            <li>
+                <a href="#21-%e7%8e%af%e5%a2%83%e4%b8%8e%e5%b7%a5%e4%bd%9c%e5%8c%ba%e5%87%86%e5%a4%87" aria-label="2.1 环境与工作区准备">2.1 环境与工作区准备</a></li>
+            <li>
+                <a href="#22-%e6%9f%a5%e7%9c%8byaml%e5%b9%b6%e6%89%a7%e8%a1%8cbaseline%e6%8e%a8%e7%90%86" aria-label="2.2 查看YAML并执行Baseline推理">2.2 查看YAML并执行Baseline推理</a><ul>
+                    
+            <li>
+                <a href="#221%e5%87%86%e5%a4%87baseline-yaml" aria-label="2.2.1准备Baseline YAML">2.2.1准备Baseline YAML</a></li>
+            <li>
+                <a href="#222%e4%bd%bf%e7%94%a8-recipes-%e5%91%bd%e4%bb%a4%e5%90%af%e5%8a%a8%e6%8e%a8%e7%90%86" aria-label="2.2.2 使用 recipes 命令启动推理">2.2.2 使用 recipes 命令启动推理</a></li>
+            <li>
+                <a href="#223-%e8%af%bb%e5%8f%96recipes%e8%bf%90%e8%a1%8c%e7%bb%93%e6%9e%9c" aria-label="2.2.3 读取recipes运行结果">2.2.3 读取recipes运行结果</a></li>
+            <li>
+                <a href="#23-%e6%9f%a5%e7%9c%8b%e7%bb%93%e6%9e%9c" aria-label="2.3 查看结果">2.3 查看结果</a></li></ul>
+            </li>
+            <li>
+                <a href="#3-profiling%e5%88%86%e6%9e%90" aria-label="3 Profiling分析">3 Profiling分析</a><ul>
+                    
+            <li>
+                <a href="#%e5%87%86%e5%a4%87%e5%b7%a5%e4%bd%9c%e4%b8%8e%e8%bf%90%e8%a1%8c" aria-label="准备工作与运行">准备工作与运行</a></li>
+            <li>
+                <a href="#%e7%bb%93%e6%9e%9c%e5%88%86%e6%9e%90" aria-label="结果分析">结果分析</a></li>
+            <li>
+                <a href="#trace_" aria-label="trace_view.json 时间线图谱">trace_view.json 时间线图谱</a></li></ul>
+            </li></ul>
+            </li>
+            <li>
+                <a href="#%e5%90%8e%e7%bb%ad" aria-label="后续">后续</a>
+            </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><h1 id="1-简介">1 简介<a hidden class="anchor" aria-hidden="true" href="#1-简介">#</a></h1>
+<p>见<a href="https://coyilla.github.io/posts/cann_qwen3_8b_1/">【CANN训练营】Qwen3-8B 推理优化实践食用指南</a></p>
+<h1 id="2-baseline跑通">2 Baseline跑通<a hidden class="anchor" aria-hidden="true" href="#2-baseline跑通">#</a></h1>
+<p><strong>notebook地址</strong>：gitcode.com/cann/cann-learning-hub/tutorials/llm_inference/qwen3_8b/02_baseline_inference.ipynb</p>
+<h2 id="21-环境与工作区准备">2.1 环境与工作区准备<a hidden class="anchor" aria-hidden="true" href="#21-环境与工作区准备">#</a></h2>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">json</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">subprocess</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">sys</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">pathlib</span> <span style="color:#cf222e">import</span> Path
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[环境准备] 开始&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>setdefault<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;modelscope&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;TOKENIZERS_PARALLELISM&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>setdefault<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;ASCEND_RT_VISIBLE_DEVICES&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;0&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">locate_repo_root</span><span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    repo_roots <span style="color:#0550ae">=</span> <span style="color:#1f2328">[]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> env_name <span style="color:#0550ae">in</span> <span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;GITCODE_REPO_ROOT&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;CANN_LEARNING_HUB_ROOT&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;REPO_ROOT&#39;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>env_name<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            repo_roots<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>Path<span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span>env_name<span style="color:#1f2328">]))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        cwd <span style="color:#0550ae">=</span> Path<span style="color:#0550ae">.</span>cwd<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        lineage <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span>cwd<span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>cwd<span style="color:#0550ae">.</span>parents<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>        repo_roots<span style="color:#0550ae">.</span>extend<span style="color:#1f2328">(</span>lineage<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        repo_roots<span style="color:#0550ae">.</span>extend<span style="color:#1f2328">(</span>base <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;cann-learning-hub&#39;</span> <span style="color:#cf222e">for</span> base <span style="color:#0550ae">in</span> lineage<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">for</span> base <span style="color:#0550ae">in</span> lineage<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                repo_roots<span style="color:#0550ae">.</span>extend<span style="color:#1f2328">(</span>base<span style="color:#0550ae">.</span>glob<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;*/cann-learning-hub&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">except</span> OSError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">pass</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">except</span> FileNotFoundError<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">pass</span>
+</span></span><span style="display:flex;"><span>    repo_roots<span style="color:#0550ae">.</span>append<span style="color:#1f2328">(</span>Path<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;/opt/atomgit/cann-learning-hub&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    seen <span style="color:#0550ae">=</span> <span style="color:#6639ba">set</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> repo_root <span style="color:#0550ae">in</span> repo_roots<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        key <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>repo_root<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> key <span style="color:#0550ae">in</span> seen<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">continue</span>
+</span></span><span style="display:flex;"><span>        seen<span style="color:#0550ae">.</span>add<span style="color:#1f2328">(</span>key<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#1f2328">(</span>repo_root <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;tutorials/llm_inference/qwen3_8b/src&#39;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>exists<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">return</span> repo_root
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">raise</span> FileNotFoundError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Cannot locate cann-learning-hub repository root. Open this notebook inside cann-learning-hub or set CANN_LEARNING_HUB_ROOT to the repository root.&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>REPO_ROOT <span style="color:#0550ae">=</span> locate_repo_root<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>chdir<span style="color:#1f2328">(</span>REPO_ROOT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>TUTORIAL_DIR <span style="color:#0550ae">=</span> REPO_ROOT <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;tutorials&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;llm_inference&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen3_8b&#39;</span>
+</span></span><span style="display:flex;"><span>SRC_DIR <span style="color:#0550ae">=</span> TUTORIAL_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;src&#39;</span>
+</span></span><span style="display:flex;"><span>SOURCE_DIR <span style="color:#0550ae">=</span> REPO_ROOT <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;Sources&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;model_inference_optimization&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen3_8b&#39;</span>
+</span></span><span style="display:flex;"><span>SOURCE_DIR<span style="color:#0550ae">.</span>mkdir<span style="color:#1f2328">(</span>parents<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span> exist_ok<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>SRC_DIR<span style="color:#1f2328">)</span> <span style="color:#0550ae">not</span> <span style="color:#0550ae">in</span> sys<span style="color:#0550ae">.</span>path<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    sys<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>insert<span style="color:#1f2328">(</span><span style="color:#0550ae">0</span><span style="color:#1f2328">,</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>SRC_DIR<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">inference_scripts.environment_check</span> <span style="color:#cf222e">import</span> find_unmet_requirements<span style="color:#1f2328">,</span> read_pinned_requirements
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;ASCEND_TOOLKIT_HOME&#39;</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">raise</span> EnvironmentError<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;ASCEND_TOOLKIT_HOME is not set. Please activate the CANN environment before running this notebook.&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>cann_script <span style="color:#0550ae">=</span> Path<span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;ASCEND_TOOLKIT_HOME&#39;</span><span style="color:#1f2328">])</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;set_env.sh&#39;</span>
+</span></span><span style="display:flex;"><span>env_cmd <span style="color:#0550ae">=</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;source </span><span style="color:#0a3069">{</span>cann_script<span style="color:#0a3069">}</span><span style="color:#0a3069"> &amp;&amp; env&#39;</span>
+</span></span><span style="display:flex;"><span>env <span style="color:#0550ae">=</span> subprocess<span style="color:#0550ae">.</span>check_output<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;bash -lc &#39;</span><span style="color:#0a3069">{</span>env_cmd<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;&#34;</span><span style="color:#1f2328">,</span> shell<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span> text<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span> cwd<span style="color:#0550ae">=</span>REPO_ROOT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span> line <span style="color:#0550ae">in</span> env<span style="color:#0550ae">.</span>splitlines<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#39;=&#39;</span> <span style="color:#0550ae">in</span> line<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span><span style="color:#6639ba">__setitem__</span><span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>line<span style="color:#0550ae">.</span>split<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;=&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>REQUIREMENTS_FILE <span style="color:#0550ae">=</span> TUTORIAL_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;requirements.txt&#39;</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>pinned_requirements <span style="color:#0550ae">=</span> read_pinned_requirements<span style="color:#1f2328">(</span>REQUIREMENTS_FILE<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>unmet_requirements <span style="color:#0550ae">=</span> find_unmet_requirements<span style="color:#1f2328">(</span>pinned_requirements<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> unmet_requirements<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[依赖检查] 以下依赖缺失或版本不匹配：&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">for</span> name<span style="color:#1f2328">,</span> actual<span style="color:#1f2328">,</span> expected <span style="color:#0550ae">in</span> unmet_requirements<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;  - </span><span style="color:#0a3069">{</span>name<span style="color:#0a3069">}</span><span style="color:#0a3069">: 当前=</span><span style="color:#0a3069">{</span>actual <span style="color:#0550ae">or</span> <span style="color:#0a3069">&#34;未安装&#34;</span><span style="color:#0a3069">}</span><span style="color:#0a3069">, 要求=</span><span style="color:#0a3069">{</span>expected<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    requirements_to_install <span style="color:#0550ae">=</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">{</span>name<span style="color:#0a3069">}</span><span style="color:#0a3069">==</span><span style="color:#0a3069">{</span>expected<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;</span> <span style="color:#cf222e">for</span> name<span style="color:#1f2328">,</span> _<span style="color:#1f2328">,</span> expected <span style="color:#0550ae">in</span> unmet_requirements<span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>    subprocess<span style="color:#0550ae">.</span>run<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">[</span>
+</span></span><span style="display:flex;"><span>            sys<span style="color:#0550ae">.</span>executable<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;-m&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;pip&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;install&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;-i&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;https://pypi.tuna.tsinghua.edu.cn/simple&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;--extra-index-url&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;https://download.pytorch.org/whl/cpu&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#39;--trusted-host&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;pypi.tuna.tsinghua.edu.cn&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">*</span>requirements_to_install<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>        check<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    remaining <span style="color:#0550ae">=</span> find_unmet_requirements<span style="color:#1f2328">(</span>pinned_requirements<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> remaining<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        details <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;, &#39;</span><span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">{</span>name<span style="color:#0a3069">}</span><span style="color:#0a3069">: </span><span style="color:#0a3069">{</span>actual <span style="color:#0550ae">or</span> <span style="color:#0a3069">&#34;未安装&#34;</span><span style="color:#0a3069">}</span><span style="color:#0a3069"> != </span><span style="color:#0a3069">{</span>expected<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;</span> <span style="color:#cf222e">for</span> name<span style="color:#1f2328">,</span> actual<span style="color:#1f2328">,</span> expected <span style="color:#0550ae">in</span> remaining<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">raise</span> RuntimeError<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;依赖安装后仍不满足统一版本：</span><span style="color:#0a3069">{</span>details<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[依赖检查] 安装完成，统一环境已满足&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[依赖检查] 所有依赖版本均满足，跳过安装&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>RECIPE_ROOT <span style="color:#0550ae">=</span> SRC_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;inference_scripts&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;recipe_qwen3_8b&#39;</span>
+</span></span><span style="display:flex;"><span>RECIPE_CONFIG_DIR <span style="color:#0550ae">=</span> RECIPE_ROOT <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;models&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;config&#39;</span>
+</span></span><span style="display:flex;"><span>BASELINE_YAML_TEMPLATE <span style="color:#0550ae">=</span> RECIPE_CONFIG_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen3_8b_1tp.yaml&#39;</span>
+</span></span><span style="display:flex;"><span>PROFILE_YAML_TEMPLATE <span style="color:#0550ae">=</span> RECIPE_CONFIG_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen3_8b_1tp_profile.yaml&#39;</span>
+</span></span><span style="display:flex;"><span>OPTIMIZED_YAML_TEMPLATE <span style="color:#0550ae">=</span> RECIPE_CONFIG_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;qwen3_8b_1tp_add_rmsnorm.yaml&#39;</span>
+</span></span><span style="display:flex;"><span>INFER_SH <span style="color:#0550ae">=</span> RECIPE_ROOT <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;executor&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;scripts&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;infer.sh&#39;</span>
+</span></span><span style="display:flex;"><span>MODEL_ID <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;QWEN3_8B_MODEL_PATH&#39;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">or</span> <span style="color:#0a3069">&#39;Qwen/Qwen3-8B&#39;</span>
+</span></span><span style="display:flex;"><span>MODEL_SOURCE_HINT <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#39;local_path&#39;</span> <span style="color:#cf222e">if</span> os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;QWEN3_8B_MODEL_PATH&#39;</span><span style="color:#1f2328">)</span> <span style="color:#cf222e">else</span> os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_8B_DOWNLOAD_BACKEND&#39;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;仓库目录 =&#39;</span><span style="color:#1f2328">,</span> REPO_ROOT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;教程目录 =&#39;</span><span style="color:#1f2328">,</span> TUTORIAL_DIR<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;运行目录 =&#39;</span><span style="color:#1f2328">,</span> SOURCE_DIR<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;recipes 目录 =&#39;</span><span style="color:#1f2328">,</span> RECIPE_ROOT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;YAML 目录 =&#39;</span><span style="color:#1f2328">,</span> RECIPE_CONFIG_DIR<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;推理入口 =&#39;</span><span style="color:#1f2328">,</span> INFER_SH<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;可见 NPU =&#39;</span><span style="color:#1f2328">,</span> os<span style="color:#0550ae">.</span>environ<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;ASCEND_RT_VISIBLE_DEVICES&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[环境准备] 完成&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这段代码是整个教程的环境准备阶段，核心目标是：把当前 Notebook 进程配置成“可以在昇腾 NPU 上跑 Qwen3-8B 推理”的完整环境。</p>
+<p>执行对应单元格即可。</p>
+<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image1.png"><br>
+这部分代码完成了环境准备工作：先通过多策略定位并切换到教程仓库根目录，然后设置模型下载后端、 tokenizer 并行开关和可见NPU卡号等基础环境变量；接着通过执行CANN的set_env.sh脚本，把昇腾工具链所需的全部环境变量导入当前Notebook进程；随后读取requirements.txt并检查当前Python环境的依赖版本，若有缺失或不匹配则自动用清华镜像源安装补齐；最后定义recipes推理框架、YAML配置文件、推理入口脚本和模型ID等路径常量，并打印环境摘要供确认，为后续在昇腾NPU上运行Qwen3-8B推理和Profiling采集做好了完整的运行环境准备。</p>
+<h2 id="22-查看yaml并执行baseline推理">2.2 查看YAML并执行Baseline推理<a hidden class="anchor" aria-hidden="true" href="#22-查看yaml并执行baseline推理">#</a></h2>
+<h3 id="221准备baseline-yaml">2.2.1准备Baseline YAML<a hidden class="anchor" aria-hidden="true" href="#221准备baseline-yaml">#</a></h3>
+<p>把 Baseline YAML 模板复制一份到运行目录，填入真实模型路径，并打印关键配置供确认。</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">os</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">time</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">inference_scripts.recipe_workflow</span> <span style="color:#cf222e">import</span> <span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    collect_recipe_metrics<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    find_recipe_case_dir<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    prepare_runtime_yaml<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    print_yaml_focus<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    resolve_model_path<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">inference_scripts.inference_qwen3_8b</span> <span style="color:#cf222e">import</span> ensure_recipe_log_ok
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>BASELINE_WORK_DIR <span style="color:#0550ae">=</span> SOURCE_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;run_outputs&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;baseline_demo&#39;</span>
+</span></span><span style="display:flex;"><span>BASELINE_YAML <span style="color:#0550ae">=</span> SOURCE_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;recipe_yaml&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;baseline_demo.yaml&#39;</span>
+</span></span><span style="display:flex;"><span>BASELINE_WORK_DIR<span style="color:#0550ae">.</span>mkdir<span style="color:#1f2328">(</span>parents<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span> exist_ok<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[Baseline 推理] 开始&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>resolved_model_path<span style="color:#1f2328">,</span> model_source <span style="color:#0550ae">=</span> resolve_model_path<span style="color:#1f2328">(</span><span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>MODEL_ID<span style="color:#1f2328">),</span> quiet_model_io<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>prepare_runtime_yaml<span style="color:#1f2328">(</span>BASELINE_YAML_TEMPLATE<span style="color:#1f2328">,</span> BASELINE_YAML<span style="color:#1f2328">,</span> model_path<span style="color:#0550ae">=</span>resolved_model_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[YAML 准备] Baseline 配置&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;参考 YAML =&#39;</span><span style="color:#1f2328">,</span> BASELINE_YAML_TEMPLATE<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;运行 YAML =&#39;</span><span style="color:#1f2328">,</span> BASELINE_YAML<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>print_yaml_focus<span style="color:#1f2328">(</span>BASELINE_YAML<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>baseline_log_dir <span style="color:#0550ae">=</span> BASELINE_WORK_DIR <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;recipe_logs&#39;</span>
+</span></span><span style="display:flex;"><span>baseline_log_dir<span style="color:#0550ae">.</span>mkdir<span style="color:#1f2328">(</span>parents<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">,</span> exist_ok<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RECIPE_ROOT&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>RECIPE_ROOT<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_YAML&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>BASELINE_YAML<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_LOG&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>baseline_log_dir <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;baseline_demo_infer_stdout.log&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_START_TIME&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>time<span style="color:#0550ae">.</span>perf_counter<span style="color:#1f2328">())</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image2.png"></p>
+<p><strong>什么是YAML</strong></p>
+<p>YAML（YAML Ain&rsquo;t Markup Language）是一种<strong>人类可读的配置文件格式</strong>，用缩进和键值对来表示数据，就像“简化版的 JSON，但不用写括号和逗号”。</p>
+<p><strong>为什么需要 YAML</strong></p>
+<p>这套教程里，YAML 的作用是：用文本描述“怎么跑模型推理”，而不需要改 Python 代码。</p>
+<p>比如需要改模型路径、是否开 Profiler、是否开 RMSNorm 融合、生成长度这些内容，只需要改 YAML 文件，不用动任何 Python 代码。</p>
+<p><strong>YAML 长什么样</strong></p>
+<p>运行YAML目录文件地址在cann-learning-hub/Sources/model_inference_optimization/qwen3_8b/recipe_yaml/baseline_demo.yaml（上一部分打印的内容）</p>
+<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image3.png"></p>
+<p>作为 <strong>Baseline配置</strong>，这份YAML的核心特征是<strong>关闭了各类性能优化</strong>（如 Profiler、RMSNorm 融合、缓存编译等），用于作为后续优化对比的“原始基准”。</p>
+<p>YAML文件的主要字段及解释：</p>
+<p><strong>（1） model_config（模型与推理核心配置）</strong></p>
+<table>
+	<thead>
+			<tr>
+					<th><strong>字段</strong></th>
+					<th><strong>当前值</strong></th>
+					<th><strong>含义</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>model_name</code></td>
+					<td><code>qwen3_8b</code></td>
+					<td>模型名称标识</td>
+			</tr>
+			<tr>
+					<td><code>model_path</code></td>
+					<td><code>/home/developer/.cache/...</code></td>
+					<td>模型权重实际路径（由代码自动填入）</td>
+			</tr>
+			<tr>
+					<td><code>dtype</code></td>
+					<td><code>bfloat16</code></td>
+					<td>计算精度（BF16，兼顾性能与精度）</td>
+			</tr>
+			<tr>
+					<td><code>exe_mode</code></td>
+					<td><code>eager</code></td>
+					<td>执行模式（即时执行，非图模式）</td>
+			</tr>
+			<tr>
+					<td><code>enable_profiler</code></td>
+					<td><strong>false</strong>​</td>
+					<td><strong>关键</strong>：关闭性能剖析（Baseline 不采集数据）</td>
+			</tr>
+			<tr>
+					<td><code>with_ckpt</code></td>
+					<td><code>true</code></td>
+					<td>启用检查点</td>
+			</tr>
+			<tr>
+					<td><code>enable_cache_compile</code></td>
+					<td><strong>false</strong>​</td>
+					<td>关闭缓存编译</td>
+			</tr>
+			<tr>
+					<td><code>enable_static_kernel</code></td>
+					<td><strong>false</strong>​</td>
+					<td>关闭静态内核</td>
+			</tr>
+			<tr>
+					<td><code>custom_params</code></td>
+					<td>子字段</td>
+					<td>自定义优化开关（见下）</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>custom_params（自定义优化，Baseline 全部关闭）：</strong></p>
+<ul>
+<li><code>enable_npu_rmsnorm</code>: <strong>false</strong>（关闭 NPU 原生 RMSNorm）</li>
+<li><code>enable_add_rmsnorm</code>: <strong>false</strong>（关闭 Add+RMSNorm 融合，<strong>这是第4章要优化的核心</strong>）</li>
+<li><code>enable_prefetch</code>: <strong>false</strong>（关闭预取）</li>
+<li><code>prefetch_size</code>: <code>18874368</code>（预取大小，虽关闭但保留默认值）</li>
+</ul>
+<p><strong>（2）data_config（数据配置）</strong></p>
+<ul>
+<li><code>dataset</code>: <code>default</code>（使用默认数据集）</li>
+<li><code>input_truncated_len</code>: <code>256</code>（输入截断长度，最多 256 token）</li>
+</ul>
+<p><strong>（3）parallel_config（并行配置）</strong></p>
+<p>全部为 <code>1</code>，表示<strong>单卡运行</strong>（无张量并行/专家并行）：</p>
+<ul>
+<li><code>world_size</code>: 1</li>
+<li><code>attn_tp_size</code>: 1（注意力张量并行）</li>
+<li><code>moe_tp_size</code>: 1（MoE 张量并行）</li>
+<li><code>embed_tp_size</code>: 1（嵌入层并行）</li>
+<li><code>lmhead_tp_size</code>: 1（输出头并行）</li>
+</ul>
+<p><strong>（4）scheduler_config（调度与生成配置）</strong></p>
+<ul>
+<li><code>max_new_tokens</code>: <code>64</code>（最多生成 64 个新 token）</li>
+<li><code>batch_size</code>: <code>1</code>（单批次推理）</li>
+<li><code>enable_thinking</code>: <strong>false</strong>（关闭思考模式，Qwen3 特有）</li>
+</ul>
+<h3 id="222使用-recipes-命令启动推理">2.2.2 使用 recipes 命令启动推理<a hidden class="anchor" aria-hidden="true" href="#222使用-recipes-命令启动推理">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0550ae">%%</span>bash
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">set</span> <span style="color:#0550ae">-</span>euo pipefail
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># 激活虚拟环境（如果有）</span>
+</span></span><span style="display:flex;"><span>source <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>venv<span style="color:#0550ae">/</span><span style="color:#6639ba">bin</span><span style="color:#0550ae">/</span>activate
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># recipes 原生启动命令</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#0a3069">&#39;recipes 启动命令:&#39;</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#0a3069">&#34;cd $</span><span style="color:#0a3069">{QWEN3_RECIPE_ROOT}</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#0a3069">&#34;bash executor/scripts/infer.sh --model qwen --mode offline --yaml $</span><span style="color:#0a3069">{QWEN3_RUN_YAML}</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>cd <span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{QWEN3_RECIPE_ROOT}</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>bash executor<span style="color:#0550ae">/</span>scripts<span style="color:#0550ae">/</span>infer<span style="color:#0550ae">.</span>sh <span style="color:#0550ae">--</span>model qwen <span style="color:#0550ae">--</span>mode offline <span style="color:#0550ae">--</span>yaml <span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{QWEN3_RUN_YAML}</span><span style="color:#0a3069">&#34;</span> <span style="color:#0550ae">2</span><span style="color:#0550ae">&gt;&amp;</span><span style="color:#0550ae">1</span> <span style="color:#0550ae">|</span> tee <span style="color:#0a3069">&#34;$</span><span style="color:#0a3069">{QWEN3_RUN_LOG}</span><span style="color:#0a3069">&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分是 Baseline 推理的实际启动命令，核心作用是：通过 recipes 框架在昇腾 NPU 上真正跑一次 Qwen3-8B 推理。</p>
+<p>注意：这部分需要在原代码开头加一行激活虚拟环境的代码（如果有）</p>
+<p><strong>recipes 是什么</strong></p>
+<p>recipes是昇腾 CANN 生态里的一套“ 大模型 推理样例框架”，它不是模型本身，也不是 PyTorch，而是怎么在 NPU 上把某个大模型跑起来的工程封装。</p>
+<p><strong>infer.sh 是什么</strong></p>
+<p>qwen3_8b/src/inference_scripts/recipe_qwen3_8b/executor/scripts/infer.sh 是 recipes 的统一推理入口脚本。</p>
+<p>主要任务：解析参数 → 加载环境 → 定位 YAML → 校验配置 → 调用 <code>launch</code> 函数真正在 NPU 上跑推理。</p>
+<h3 id="223-读取recipes运行结果">2.2.3 读取recipes运行结果<a hidden class="anchor" aria-hidden="true" href="#223-读取recipes运行结果">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>case_dir <span style="color:#0550ae">=</span> find_recipe_case_dir<span style="color:#1f2328">(</span>RECIPE_ROOT<span style="color:#1f2328">,</span> BASELINE_YAML<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">if</span> case_dir <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">raise</span> RuntimeError<span style="color:#1f2328">(</span><span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;未找到 recipes 结果目录：</span><span style="color:#0a3069">{</span>BASELINE_YAML<span style="color:#0550ae">.</span>stem<span style="color:#0a3069">}</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>recipe_log_path <span style="color:#0550ae">=</span> case_dir <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;log_0.log&#39;</span>
+</span></span><span style="display:flex;"><span>ensure_recipe_log_ok<span style="color:#1f2328">(</span>recipe_log_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>run_info <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;stdout_path&#39;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_LOG&#39;</span><span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;stderr_path&#39;</span><span style="color:#1f2328">:</span> os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_LOG&#39;</span><span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;wall_time_s&#39;</span><span style="color:#1f2328">:</span> time<span style="color:#0550ae">.</span>perf_counter<span style="color:#1f2328">()</span> <span style="color:#0550ae">-</span> <span style="color:#6639ba">float</span><span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_START_TIME&#39;</span><span style="color:#1f2328">]),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;recipe_case_dir&#39;</span><span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>case_dir<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;recipe_log_path&#39;</span><span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>recipe_log_path<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>baseline_metrics <span style="color:#0550ae">=</span> collect_recipe_metrics<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    RECIPE_ROOT<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    BASELINE_WORK_DIR<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#39;baseline_demo&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    BASELINE_YAML<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    run_info<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    model_id<span style="color:#0550ae">=</span><span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>MODEL_ID<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>    resolved_model_path<span style="color:#0550ae">=</span>resolved_model_path<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    model_source<span style="color:#0550ae">=</span>model_source<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    optimization_mode<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;none&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    max_new_tokens<span style="color:#0550ae">=</span><span style="color:#0550ae">64</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    max_input_tokens<span style="color:#0550ae">=</span><span style="color:#0550ae">256</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    enable_thinking<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[Baseline 推理] 完成&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这部分代码是Baseline推理的收尾阶段，核心作用是：定位推理结果目录，检查日志是否正常， 收集并保存推理指标，为后续分析和对比做准备。</p>
+<p>参数含义：</p>
+<table>
+	<thead>
+			<tr>
+					<th><strong>参数</strong></th>
+					<th><strong>值</strong></th>
+					<th><strong>含义</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>optimization_mode</code></td>
+					<td><code>'none'</code></td>
+					<td>本次是 Baseline（无优化）</td>
+			</tr>
+			<tr>
+					<td><code>max_new_tokens</code></td>
+					<td><code>64</code></td>
+					<td>生成长度限制</td>
+			</tr>
+			<tr>
+					<td><code>max_input_tokens</code></td>
+					<td><code>256</code></td>
+					<td>输入长度限制</td>
+			</tr>
+			<tr>
+					<td><code>enable_thinking</code></td>
+					<td><code>False</code></td>
+					<td>关闭思考模式</td>
+			</tr>
+	</tbody>
+</table>
+<h3></h3>
+<h3 id="23-查看结果">2.3 查看结果<a hidden class="anchor" aria-hidden="true" href="#23-查看结果">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[结果查看] 开始&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">status_cn</span><span style="color:#1f2328">(</span>status<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#1f2328">{</span><span style="color:#0a3069">&#39;ok&#39;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#39;通过&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;warning&#39;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#39;告警&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;failed&#39;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#39;失败&#39;</span><span style="color:#1f2328">}</span><span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span>status<span style="color:#1f2328">,</span> status<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">yes_no</span><span style="color:#1f2328">(</span>value<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> value <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#39;未记录&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> <span style="color:#0a3069">&#39;是&#39;</span> <span style="color:#cf222e">if</span> value <span style="color:#cf222e">else</span> <span style="color:#0a3069">&#39;否&#39;</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">load_metrics</span><span style="color:#1f2328">(</span>work_dir<span style="color:#1f2328">,</span> tag<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    metrics_path <span style="color:#0550ae">=</span> Path<span style="color:#1f2328">(</span>work_dir<span style="color:#1f2328">)</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">&#39;metrics&#39;</span> <span style="color:#0550ae">/</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#39;</span><span style="color:#0a3069">{</span>tag<span style="color:#0a3069">}</span><span style="color:#0a3069">_summary.json&#39;</span>
+</span></span><span style="display:flex;"><span>    metrics <span style="color:#0550ae">=</span> json<span style="color:#0550ae">.</span>loads<span style="color:#1f2328">(</span>metrics_path<span style="color:#0550ae">.</span>read_text<span style="color:#1f2328">(</span>encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;utf-8&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;指标文件 =&#39;</span><span style="color:#1f2328">,</span> metrics_path<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;recipes YAML =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;recipe_yaml_path&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;recipes 结果目录 =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;recipe_case_dir&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;生成文件 =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;outputs_path&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;生成 token 数 =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;generated_tokens&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;总耗时(s) =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;total_time_s&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;吞吐(tokens/s) =&#39;</span><span style="color:#1f2328">,</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;tokens_per_second&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>    rmsnorm_status <span style="color:#0550ae">=</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;rmsnorm_status&#39;</span><span style="color:#1f2328">)</span> <span style="color:#0550ae">or</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;RMSNorm 融合 =&#39;</span><span style="color:#1f2328">,</span> yes_no<span style="color:#1f2328">(</span>rmsnorm_status<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;rmsnorm_fused&#39;</span><span style="color:#1f2328">)))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Add+RMSNorm 融合 =&#39;</span><span style="color:#1f2328">,</span> yes_no<span style="color:#1f2328">(</span>rmsnorm_status<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;add_rmsnorm_fused&#39;</span><span style="color:#1f2328">)))</span>
+</span></span><span style="display:flex;"><span>    sanity <span style="color:#0550ae">=</span> metrics<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;generation_text_sanity&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> sanity<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;吐字检查 =&#39;</span><span style="color:#1f2328">,</span> status_cn<span style="color:#1f2328">(</span>sanity<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;status&#39;</span><span style="color:#1f2328">)),</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;警告=</span><span style="color:#0a3069">{</span>sanity<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;num_with_warnings&#39;</span><span style="color:#1f2328">)</span><span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">f</span><span style="color:#0a3069">&#34;失败=</span><span style="color:#0a3069">{</span>sanity<span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;num_failed&#39;</span><span style="color:#1f2328">)</span><span style="color:#0a3069">}</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> metrics
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>baseline_metrics <span style="color:#0550ae">=</span> load_metrics<span style="color:#1f2328">(</span>BASELINE_WORK_DIR<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;baseline_demo&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;生成文本:&#39;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">for</span> line <span style="color:#0550ae">in</span> Path<span style="color:#1f2328">(</span>baseline_metrics<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;outputs_path&#39;</span><span style="color:#1f2328">])</span><span style="color:#0550ae">.</span>read_text<span style="color:#1f2328">(</span>encoding<span style="color:#0550ae">=</span><span style="color:#0a3069">&#39;utf-8&#39;</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>splitlines<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">if</span> line<span style="color:#0550ae">.</span>strip<span style="color:#1f2328">():</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">print</span><span style="color:#1f2328">(</span>json<span style="color:#0550ae">.</span>loads<span style="color:#1f2328">(</span>line<span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>get<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;generated_text&#39;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#39;&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">print</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;[结果查看] 完成&#39;</span><span style="color:#1f2328">,</span> flush<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这段代码读取并展示刚才那次推理的完整指标和生成文本，便于直观确认 Baseline 状态。</p>
+<p>运行结果：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#1f2328">[</span>结果查看<span style="color:#1f2328">]</span> 开始
+</span></span><span style="display:flex;"><span>指标文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>run_outputs<span style="color:#0550ae">/</span>baseline_demo<span style="color:#0550ae">/</span>metrics<span style="color:#0550ae">/</span>baseline_demo_summary<span style="color:#0550ae">.</span>json
+</span></span><span style="display:flex;"><span>recipes YAML <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>recipe_yaml<span style="color:#0550ae">/</span>baseline_demo<span style="color:#0550ae">.</span>yaml
+</span></span><span style="display:flex;"><span>recipes 结果目录 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>src<span style="color:#0550ae">/</span>inference_scripts<span style="color:#0550ae">/</span>recipe_qwen3_8b<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>qwen<span style="color:#0550ae">/</span>res<span style="color:#0550ae">/</span><span style="color:#0550ae">20261013</span><span style="color:#0550ae">/</span>qwen3_8b_baseline_demo
+</span></span><span style="display:flex;"><span>生成文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>run_outputs<span style="color:#0550ae">/</span>baseline_demo<span style="color:#0550ae">/</span>outputs<span style="color:#0550ae">/</span>baseline_demo_generations<span style="color:#0550ae">.</span>jsonl
+</span></span><span style="display:flex;"><span>生成 token 数 <span style="color:#0550ae">=</span> <span style="color:#0550ae">38</span>
+</span></span><span style="display:flex;"><span>总耗时<span style="color:#1f2328">(</span>s<span style="color:#1f2328">)</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">5.3463899999999995</span>
+</span></span><span style="display:flex;"><span>吞吐<span style="color:#1f2328">(</span>tokens<span style="color:#0550ae">/</span>s<span style="color:#1f2328">)</span> <span style="color:#0550ae">=</span> <span style="color:#0550ae">7.10759970746616</span>
+</span></span><span style="display:flex;"><span>RMSNorm 融合 <span style="color:#0550ae">=</span> 否
+</span></span><span style="display:flex;"><span>Add<span style="color:#0550ae">+</span>RMSNorm 融合 <span style="color:#0550ae">=</span> 否
+</span></span><span style="display:flex;"><span>吐字检查 <span style="color:#0550ae">=</span> 通过 警告<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span> 失败<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>生成文本<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>The output of an <span style="color:#0550ae">**</span>attention function<span style="color:#0550ae">**</span> <span style="color:#0550ae">is</span> a <span style="color:#0550ae">**</span>weighted <span style="color:#6639ba">sum</span> of the value vectors<span style="color:#0550ae">**</span><span style="color:#1f2328">,</span> where the weights are determined by the <span style="color:#0550ae">**</span>similarity between the query vector <span style="color:#0550ae">and</span> each key vector<span style="color:#0550ae">**.</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>结果查看<span style="color:#1f2328">]</span> 完成
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+	<thead>
+			<tr>
+					<th><strong>打印内容</strong></th>
+					<th><strong>实际值</strong></th>
+					<th><strong>含义</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>指标文件</code></td>
+					<td>路径</td>
+					<td>指标 JSON 的位置</td>
+			</tr>
+			<tr>
+					<td><code>recipes YAML</code></td>
+					<td>运行 YAML 路径</td>
+					<td>用的是哪个配置</td>
+			</tr>
+			<tr>
+					<td><code>recipes 结果目录</code></td>
+					<td>推理产物目录</td>
+					<td>日志、输出等存放位置</td>
+			</tr>
+			<tr>
+					<td><code>生成文件</code></td>
+					<td>outputs 路径</td>
+					<td>生成文本的 JSONL 文件</td>
+			</tr>
+			<tr>
+					<td><code>生成 token 数</code></td>
+					<td><code>38</code></td>
+					<td>实际生成了 38 个 token</td>
+			</tr>
+			<tr>
+					<td><code>总耗时(s)</code></td>
+					<td><code>5.35</code></td>
+					<td>推理总耗时 5.35 秒</td>
+			</tr>
+			<tr>
+					<td><code>吞吐(tokens/s)</code></td>
+					<td><code>7.11</code></td>
+					<td>每秒生成 7.11 个 token</td>
+			</tr>
+			<tr>
+					<td><code>RMSNorm 融合</code></td>
+					<td><code>否</code></td>
+					<td>确认关闭</td>
+			</tr>
+			<tr>
+					<td><code>Add+RMSNorm 融合</code></td>
+					<td><code>否</code></td>
+					<td>确认关闭</td>
+			</tr>
+			<tr>
+					<td><code>吐字检查</code></td>
+					<td><code>通过</code></td>
+					<td>无告警、无失败</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="3-profiling分析">3 Profiling分析<a hidden class="anchor" aria-hidden="true" href="#3-profiling分析">#</a></h2>
+<p>这部分在Baseline的基础上打开torch_npu.profiler。</p>
+<p>torch_npu.profiler 是 PyTorch 在昇腾 NPU 上的性能剖析器，它底层会调用 CANN / Ascend Profiling​ 能力，把三层数据对起来：</p>
+<p><strong>（1）Host 侧</strong>：Python 调用、PyTorch 算子下发、CPU 活动</p>
+<p><strong>（2）CANN 侧</strong>：算子编译、任务调度、内存拷贝、流同步</p>
+<p><strong>（3）NPU 侧</strong>：AI Core / AI CPU / Vector 核上的 kernel 执行时间、耗时、等待时间</p>
+<p>它的目的不是“让模型更快”，而是：</p>
+<blockquote>
+<p><strong>先看清楚 Baseline 推理里，时间到底耗在哪些算子上了。</strong></p>
+</blockquote>
+<h3 id="准备工作与运行">准备工作与运行<a hidden class="anchor" aria-hidden="true" href="#准备工作与运行">#</a></h3>
+<p>环境工作区准备的流程和baseline一致。准备YAML的时候准备的是Profiling YAML，在baseline的基础上打开Profiling。其余运行流程与baseline一致。</p>
+<p>Profiling YAML中model_config.enable_profiler 设为true，其余推理参数保持和 Baseline 一致。</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>YAML 文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>recipe_yaml<span style="color:#0550ae">/</span>baseline_profile<span style="color:#0550ae">.</span>yaml
+</span></span><span style="display:flex;"><span>model_path <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>home<span style="color:#0550ae">/</span>developer<span style="color:#0550ae">/.</span>cache<span style="color:#0550ae">/</span>modelscope<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>Qwen<span style="color:#0550ae">--</span>Qwen3<span style="color:#0550ae">-</span><span style="color:#0550ae">8</span>B<span style="color:#0550ae">/</span>snapshots<span style="color:#0550ae">/</span>master
+</span></span><span style="display:flex;"><span>enable_profiler <span style="color:#0550ae">=</span> <span style="color:#cf222e">True</span> <span style="color:#57606a"># 注意，这里的enable_profiler，即yaml里打开了profiler</span>
+</span></span><span style="display:flex;"><span>enable_npu_rmsnorm <span style="color:#0550ae">=</span> <span style="color:#cf222e">False</span>
+</span></span><span style="display:flex;"><span>enable_add_rmsnorm <span style="color:#0550ae">=</span> <span style="color:#cf222e">False</span>
+</span></span><span style="display:flex;"><span>enable_prefetch <span style="color:#0550ae">=</span> <span style="color:#cf222e">False</span>
+</span></span><span style="display:flex;"><span>prefetch_size <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span>dataset <span style="color:#0550ae">=</span> default
+</span></span><span style="display:flex;"><span>input_truncated_len <span style="color:#0550ae">=</span> <span style="color:#0550ae">256</span>
+</span></span><span style="display:flex;"><span>max_new_tokens <span style="color:#0550ae">=</span> <span style="color:#0550ae">64</span>
+</span></span><span style="display:flex;"><span>batch_size <span style="color:#0550ae">=</span> <span style="color:#0550ae">1</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="结果分析">结果分析<a hidden class="anchor" aria-hidden="true" href="#结果分析">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#1f2328">[</span>Profiler 产物<span style="color:#1f2328">]</span> 开始
+</span></span><span style="display:flex;"><span>指标文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>run_outputs<span style="color:#0550ae">/</span>baseline_profile<span style="color:#0550ae">/</span>metrics<span style="color:#0550ae">/</span>baseline_profile_summary<span style="color:#0550ae">.</span>json
+</span></span><span style="display:flex;"><span>生成 token 数 <span style="color:#0550ae">=</span> <span style="color:#0550ae">38</span>
+</span></span><span style="display:flex;"><span>Profiler 开启 <span style="color:#0550ae">=</span> 是
+</span></span><span style="display:flex;"><span>Profile 目录 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>src<span style="color:#0550ae">/</span>inference_scripts<span style="color:#0550ae">/</span>recipe_qwen3_8b<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>qwen<span style="color:#0550ae">/</span>res<span style="color:#0550ae">/</span><span style="color:#0550ae">20261013</span><span style="color:#0550ae">/</span>qwen3_8b_baseline_profile<span style="color:#0550ae">/</span>prof
+</span></span><span style="display:flex;"><span>prof<span style="color:#0550ae">/</span>prefill <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>src<span style="color:#0550ae">/</span>inference_scripts<span style="color:#0550ae">/</span>recipe_qwen3_8b<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>qwen<span style="color:#0550ae">/</span>res<span style="color:#0550ae">/</span><span style="color:#0550ae">20261013</span><span style="color:#0550ae">/</span>qwen3_8b_baseline_profile<span style="color:#0550ae">/</span>prof<span style="color:#0550ae">/</span>prefill
+</span></span><span style="display:flex;"><span>  一级目录 <span style="color:#0550ae">=</span> <span style="color:#0550ae">7</span>f27e7db10fd4ffda8f0b031bf276588_11042_20261013190353199_ascend_pt
+</span></span><span style="display:flex;"><span>  kernel_details<span style="color:#0550ae">.</span>csv <span style="color:#0550ae">=</span> 已生成
+</span></span><span style="display:flex;"><span>  trace_view<span style="color:#0550ae">.</span>json <span style="color:#0550ae">=</span> 已生成
+</span></span><span style="display:flex;"><span>prof<span style="color:#0550ae">/</span>decode <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>src<span style="color:#0550ae">/</span>inference_scripts<span style="color:#0550ae">/</span>recipe_qwen3_8b<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>qwen<span style="color:#0550ae">/</span>res<span style="color:#0550ae">/</span><span style="color:#0550ae">20261013</span><span style="color:#0550ae">/</span>qwen3_8b_baseline_profile<span style="color:#0550ae">/</span>prof<span style="color:#0550ae">/</span>decode
+</span></span><span style="display:flex;"><span>  一级目录 <span style="color:#0550ae">=</span> <span style="color:#0550ae">7</span>f27e7db10fd4ffda8f0b031bf276588_11042_20261013190359433_ascend_pt
+</span></span><span style="display:flex;"><span>  kernel_details<span style="color:#0550ae">.</span>csv <span style="color:#0550ae">=</span> 已生成
+</span></span><span style="display:flex;"><span>  trace_view<span style="color:#0550ae">.</span>json <span style="color:#0550ae">=</span> 已生成
+</span></span><span style="display:flex;"><span>吐字检查 <span style="color:#0550ae">=</span> 通过 警告<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span> 失败<span style="color:#0550ae">=</span><span style="color:#0550ae">0</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>Profiler 摘要文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>run_outputs<span style="color:#0550ae">/</span>baseline_profile<span style="color:#0550ae">/</span>profiler_summary<span style="color:#0550ae">/</span>baseline_profile_summary<span style="color:#0550ae">.</span>txt
+</span></span><span style="display:flex;"><span>Profiler summary <span style="color:#cf222e">from</span> <span style="color:#24292e">kernel_details</span>
+</span></span><span style="display:flex;"><span>source<span style="color:#1f2328">:</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>tutorials<span style="color:#0550ae">/</span>llm_inference<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>src<span style="color:#0550ae">/</span>inference_scripts<span style="color:#0550ae">/</span>recipe_qwen3_8b<span style="color:#0550ae">/</span>models<span style="color:#0550ae">/</span>qwen<span style="color:#0550ae">/</span>res<span style="color:#0550ae">/</span><span style="color:#0550ae">20261013</span><span style="color:#0550ae">/</span>qwen3_8b_baseline_profile<span style="color:#0550ae">/</span>prof<span style="color:#0550ae">/</span>decode<span style="color:#0550ae">/</span><span style="color:#0550ae">7</span>f27e7db10fd4ffda8f0b031bf276588_11042_20261013190359433_ascend_pt<span style="color:#0550ae">/</span>ASCEND_PROFILER_OUTPUT<span style="color:#0550ae">/</span>kernel_details<span style="color:#0550ae">.</span>csv
+</span></span><span style="display:flex;"><span>OP Type                                               Count      Total<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span>   Ratio<span style="color:#1f2328">(</span><span style="color:#0550ae">%</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">----------------------------------------------------------------------------------------</span>
+</span></span><span style="display:flex;"><span>aclnnMatmulWeightNz_MatMulCommon_MatMulV2               <span style="color:#0550ae">435</span>      <span style="color:#0550ae">36531.740</span>     <span style="color:#0550ae">68.653</span>
+</span></span><span style="display:flex;"><span>aclnnMul_MulAiCore_Mul                                  <span style="color:#0550ae">978</span>       <span style="color:#0550ae">3579.760</span>      <span style="color:#0550ae">6.727</span>
+</span></span><span style="display:flex;"><span>aclnnPowTensorScalar_PowsAiCore_Pows                    <span style="color:#0550ae">435</span>       <span style="color:#0550ae">2855.780</span>      <span style="color:#0550ae">5.367</span>
+</span></span><span style="display:flex;"><span>FusedInferAttentionScore                                <span style="color:#0550ae">108</span>       <span style="color:#0550ae">2413.320</span>      <span style="color:#0550ae">4.535</span>
+</span></span><span style="display:flex;"><span>aclnnMean_ReduceMeanAiCore_ReduceMean                   <span style="color:#0550ae">435</span>       <span style="color:#0550ae">2318.040</span>      <span style="color:#0550ae">4.356</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span>
+</span></span><span style="display:flex;"><span>aclnnInplaceOne_OnesLikeAiCore_OnesLike                   <span style="color:#0550ae">3</span>         <span style="color:#0550ae">35.100</span>      <span style="color:#0550ae">0.066</span>
+</span></span><span style="display:flex;"><span>aclnnEmbedding_GatherV2AiCore_GatherV2                    <span style="color:#0550ae">3</span>         <span style="color:#0550ae">31.100</span>      <span style="color:#0550ae">0.058</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">...</span> 仅显示前 <span style="color:#0550ae">24</span> 行<span style="color:#f6f8fa;background-color:#82071e">，</span>共 <span style="color:#0550ae">35</span> 行
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>Profiler 产物<span style="color:#1f2328">]</span> 完成
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#1f2328">[</span>分析结论<span style="color:#1f2328">]</span> 开始
+</span></span><span style="display:flex;"><span>摘要类型 <span style="color:#0550ae">=</span> kernel_details
+</span></span><span style="display:flex;"><span>生成 token 数 <span style="color:#0550ae">=</span> <span style="color:#0550ae">38</span>
+</span></span><span style="display:flex;"><span>Baseline RMSNorm 融合 <span style="color:#0550ae">=</span> 否
+</span></span><span style="display:flex;"><span>Baseline Add<span style="color:#0550ae">+</span>RMSNorm 融合 <span style="color:#0550ae">=</span> 否
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>Top 算子<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnMatmulWeightNz_MatMulCommon_MatMulV2<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">435</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">36531.740</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">68.653</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnMul_MulAiCore_Mul<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">978</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">3579.760</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">6.727</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnPowTensorScalar_PowsAiCore_Pows<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">435</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">2855.780</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">5.367</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> FusedInferAttentionScore<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">108</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">2413.320</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">4.535</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnMean_ReduceMeanAiCore_ReduceMean<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">435</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">2318.040</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">4.356</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnInplaceCopy_CastAiCore_Cast<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">873</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">1377.980</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">2.590</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnScatterNdUpdate_ScatterNdUpdateAiCore_ScatterNdUpdate<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">216</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">1090.060</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">2.049</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnAdds_AddAiCore_Add<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">441</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">625.340</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">1.175</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnRsqrt_RsqrtAiCore_Rsqrt<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">435</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">533.560</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">1.003</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> aclnnAdd_AddAiCore_Add<span style="color:#1f2328">:</span> 次数<span style="color:#0550ae">=</span><span style="color:#0550ae">219</span><span style="color:#f6f8fa;background-color:#82071e">，</span>总耗时<span style="color:#1f2328">(</span>us<span style="color:#1f2328">)</span><span style="color:#0550ae">=</span><span style="color:#0550ae">473.720</span><span style="color:#f6f8fa;background-color:#82071e">，</span>占比<span style="color:#0550ae">=</span><span style="color:#0550ae">0.890</span><span style="color:#0550ae">%</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>结论<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> Baseline YAML 中 Dense RMSNorm 两个融合开关均为关闭<span style="color:#f6f8fa;background-color:#82071e">，</span>因此本章看到的是融合前的执行链路<span style="color:#f6f8fa;background-color:#82071e">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> 摘要中没有直接出现融合后的 RMSNorm 算子名<span style="color:#f6f8fa;background-color:#82071e">，</span>说明 Baseline 仍按小算子链路执行<span style="color:#f6f8fa;background-color:#82071e">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> 结合 QwenRMSNorm 的计算式<span style="color:#f6f8fa;background-color:#82071e">，</span>摘要中的归一化相关小算子包括<span style="color:#f6f8fa;background-color:#82071e">：</span>aclnnAdd_CastAiCore_Cast<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnArgMax_CastAiCore_Cast<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnGather_CastAiCore_Cast<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnInplaceCopy_CastAiCore_Cast<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnMax_ReduceMaxAiCore_ReduceMax<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnMean_ReduceMeanAiCore_ReduceMean<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnPowTensorScalar_PowsAiCore_Pows<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnRemainderTensorScalar_BroadcastToAiCore_BroadcastTo<span style="color:#f6f8fa;background-color:#82071e">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> 摘要中也可以看到残差 Add 相关算子<span style="color:#f6f8fa;background-color:#82071e">：</span>aclnnAdd_AddAiCore_Add<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnAdd_CastAiCore_Cast<span style="color:#f6f8fa;background-color:#82071e">、</span>aclnnAdds_AddAiCore_Add<span style="color:#f6f8fa;background-color:#82071e">。</span>
+</span></span><span style="display:flex;"><span><span style="color:#0550ae">-</span> 下一章保持 recipes 的 YAML <span style="color:#0550ae">+</span> infer<span style="color:#0550ae">.</span>sh 工作流<span style="color:#f6f8fa;background-color:#82071e">，</span>只切换 Dense RMSNorm NPU 融合开关<span style="color:#f6f8fa;background-color:#82071e">，</span>对比精度<span style="color:#f6f8fa;background-color:#82071e">、</span>吐字健康和吞吐变化<span style="color:#f6f8fa;background-color:#82071e">。</span>
+</span></span><span style="display:flex;"><span>分析文件 <span style="color:#0550ae">=</span> <span style="color:#0550ae">/</span>mnt<span style="color:#0550ae">/</span>workspace<span style="color:#0550ae">/</span>gitCode<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">/</span>cann<span style="color:#0550ae">-</span>learning<span style="color:#0550ae">-</span>hub<span style="color:#0550ae">/</span>Sources<span style="color:#0550ae">/</span>model_inference_optimization<span style="color:#0550ae">/</span>qwen3_8b<span style="color:#0550ae">/</span>run_outputs<span style="color:#0550ae">/</span>profiling_analysis_summary<span style="color:#0550ae">.</span>json
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">[</span>分析结论<span style="color:#1f2328">]</span> 完成
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>算子耗时排名：</strong></p>
+<table>
+	<thead>
+			<tr>
+					<th><strong>排名</strong></th>
+					<th><strong>算子</strong></th>
+					<th><strong>次数</strong></th>
+					<th><strong>耗时(us)</strong></th>
+					<th><strong>占比</strong></th>
+					<th><strong>属于什么</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>1</td>
+					<td><strong>MatMul</strong>​</td>
+					<td>435</td>
+					<td>36531.74</td>
+					<td>**68.65%**​</td>
+					<td>线性层（QKV/O/FFN）</td>
+			</tr>
+			<tr>
+					<td>2</td>
+					<td><strong>Mul</strong>​</td>
+					<td>978</td>
+					<td>3579.76</td>
+					<td>6.73%</td>
+					<td><strong>RMSNorm 小算子</strong>​</td>
+			</tr>
+			<tr>
+					<td>3</td>
+					<td><strong>Pow</strong>​</td>
+					<td>435</td>
+					<td>2855.78</td>
+					<td>5.37%</td>
+					<td><strong>RMSNorm 小算子</strong>​</td>
+			</tr>
+			<tr>
+					<td>4</td>
+					<td><strong>FusedInferAttentionScore</strong>​</td>
+					<td>108</td>
+					<td>2413.32</td>
+					<td>4.54%</td>
+					<td>注意力融合算子</td>
+			</tr>
+			<tr>
+					<td>5</td>
+					<td><strong>ReduceMean</strong>​</td>
+					<td>435</td>
+					<td>2318.04</td>
+					<td>4.36%</td>
+					<td><strong>RMSNorm 小算子</strong>​</td>
+			</tr>
+			<tr>
+					<td>6</td>
+					<td>Cast</td>
+					<td>873</td>
+					<td>1377.98</td>
+					<td>2.59%</td>
+					<td>类型转换</td>
+			</tr>
+			<tr>
+					<td>7</td>
+					<td>ScatterNdUpdate</td>
+					<td>216</td>
+					<td>1090.06</td>
+					<td>2.05%</td>
+					<td>KV Cache 更新</td>
+			</tr>
+			<tr>
+					<td>8</td>
+					<td>Adds</td>
+					<td>441</td>
+					<td>625.34</td>
+					<td>1.18%</td>
+					<td><strong>残差 Add</strong>​</td>
+			</tr>
+			<tr>
+					<td>9</td>
+					<td><strong>Rsqrt</strong>​</td>
+					<td>435</td>
+					<td>533.56</td>
+					<td>1.00%</td>
+					<td><strong>RMSNorm 小算子</strong>​</td>
+			</tr>
+			<tr>
+					<td>10</td>
+					<td>Add</td>
+					<td>219</td>
+					<td>473.72</td>
+					<td>0.89%</td>
+					<td><strong>残差 Add</strong>​</td>
+			</tr>
+	</tbody>
+</table>
+<p>可以看出，MatMul（矩阵乘法）耗时最长，其余部分RMSNorm 被拆成了 8 个小算子，残差 Add 也是小算子没有融合。</p>
+<p>Profiling 分析证实了 RMSNorm 未融合时被拆成 8 个小算子（Pow/ReduceMean/Rsqrt/Mul 等），导致launch 次数多、访存多、耗时高，是明确的性能瓶颈。下一章将打开 <code>enable_add_rmsnorm</code> 融合开关，用 A/B 对比验证优化效果。</p>
+<h3 id="trace_"><strong>trace_view.json 时间线图谱</strong><a hidden class="anchor" aria-hidden="true" href="#trace_">#</a></h3>
+<p><code>trace_view.json</code> 时间线图谱，呈现了 Qwen3-8B 在昇腾 NPU 上 <strong>Prefill</strong>​与 <strong>Decode</strong>​两个阶段的执行特征。</p>
+<p><strong>Prefill：</strong></p>
+<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image4.png"></p>
+<p>对应 <code>prof/prefill</code>，即处理输入 提示词 的阶段。</p>
+<ul>
+<li><strong>时间跨度与标记</strong>：整体约 150ms（50ms-200ms），标记为 <code>ProfilerStep#0</code>，末尾带有 **<code>Dec</code>**​ 标记，暗示向 Decode 阶段的过渡。</li>
+<li><strong>算子形态</strong>：NPU（Stream 46/49）上的色块相对“大块”，虽然密集但多为一次性大粒度计算（如首轮的 QKV 大矩阵乘）。</li>
+<li><strong>重叠与频率</strong>：CPU（Python/CANN）与 NPU 有明显的调度交互。底部 <code>Overlap Analysis</code> 中 Computing 与 Free 交替，由于仅执行一次，整体耗时较短，未暴露出小算子的反复累加效应。</li>
+</ul>
+<p><strong>Decode：</strong></p>
+<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image5.png"></p>
+<ul>
+<li><strong>时间跨度与标记</strong>：整体约 350ms（100ms-450ms），包含 <code>#3</code>、<code>#4</code>、<code>#5</code> 连续多步，每步对应一个（或几个）Token 的生成。</li>
+<li><strong>极度密集的细碎条纹</strong>：这是最核心的视觉特征。NPU 时间线上布满高频、细碎的彩色条纹，直观对应了前文数据中 <strong>435次 MatMul</strong>​ 以及伴随的 <strong>Pow/ReduceMean/Rsqrt/Mul</strong>（RMSNorm 未融合）等小算子。</li>
+<li><strong>多流并行</strong>：Stream 46 与 Stream 49 交错，CANN 线程持续调度，AI Core 频率满载（浅蓝色长条），说明计算单元持续忙碌。</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th><strong>对比维度</strong></th>
+					<th><strong>Prefill</strong></th>
+					<th><strong>Decode</strong></th>
+					<th><strong>性能含义</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>执行次数</strong>​</td>
+					<td>单次（Step#0）</td>
+					<td>多次迭代（Step#3/4/5）</td>
+					<td>Decode 重复放大了局部开销</td>
+			</tr>
+			<tr>
+					<td><strong>算子粒度</strong>​</td>
+					<td>相对大块（计算密集）</td>
+					<td>**极度细碎（访存/调度密集）**​</td>
+					<td>Decode 中小算子 Launch 开销显著</td>
+			</tr>
+			<tr>
+					<td><strong>时间线密度</strong>​</td>
+					<td>密集但无高频锯齿</td>
+					<td>满屏细碎条纹</td>
+					<td>印证 RMSNorm 拆分成 4~8 个小算子</td>
+			</tr>
+			<tr>
+					<td><strong>耗时占比</strong>​</td>
+					<td>较短（~150ms）</td>
+					<td>较长（~350ms+）</td>
+					<td>端到端吞吐受 Decode 阶段主导</td>
+			</tr>
+	</tbody>
+</table>
+<p>图谱直观揭示了Decode阶段因 RMSNorm 未融合产生大量小算子调度（细碎条纹），是端到端性能的可优化瓶颈；Prefill 则相对健康。</p>
+<h1 id="后续">后续<a hidden class="anchor" aria-hidden="true" href="#后续">#</a></h1>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/qwen3-8b/">Qwen3-8B</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on x"
+            href="https://x.com/intent/tweet/?text=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f&amp;hashtags=Qwen3-8B%2c%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f&amp;title=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89&amp;summary=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f&title=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on whatsapp"
+            href="https://api.whatsapp.com/send?text=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on telegram"
+            href="https://telegram.me/share/url?text=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3） on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=%e3%80%90CANN%e8%ae%ad%e7%bb%83%e8%90%a5%e3%80%91Qwen3-8B%20%e6%8e%a8%e7%90%86%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5%e7%ac%94%e8%ae%b0%ef%bc%882~3%ef%bc%89&u=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_cann_qwen3_8b_2_3%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Coyilla的技术随想录</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

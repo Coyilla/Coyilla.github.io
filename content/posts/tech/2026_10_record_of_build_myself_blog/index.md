@@ -3,7 +3,7 @@ date = '2026-10-14T23:05:01+08:00'
 draft = false
 title = '个人博客搭建记录'
 categories = ["技术"]
-tags = ["踩坑记录","搭建笔记"]
+tags = ["踩坑记录","搭建笔记","记录"]
 +++
 # 开始
 
@@ -46,3 +46,17 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 ![这是一个中文路径的图片文件，现在测试下](微信图片_20260420193736_332_8.jpg)
 
 加了categories和tags
+
+### 2026-10-15
+
+更改了post文件夹下文件的管理方式，改成这样：
+```
+content/posts/  
+├── tech/  
+│   ├── 2026-10-hugo-blog-setup.md  
+│   └── 2026-10-git-commands.md  
+├── growth/  
+│   └── 2026-10-learning-method.md  
+└── weekly/  
+    └── 2026-10-weekly.md  
+```

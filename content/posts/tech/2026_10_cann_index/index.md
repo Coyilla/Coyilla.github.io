@@ -3,7 +3,7 @@ date = '2026-10-15T10:49:27+08:00'
 draft = false
 title = '【CANN训练营】课堂笔记'
 categories = ["技术"]
-tags = ["学习笔记"]
+tags = ["学习笔记","记录"]
 series = ["CANN训练营"]
 +++
 # day1上午 CANN基础
@@ -180,9 +180,9 @@ https://gitcode.com/cann/cannbot-skills
 
 产出：
 
-https://coyilla.github.io/cann_qwen3_8b_1
+https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1
 
-https://coyilla.github.io/cann_qwen3_8b_2_3
+https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_2_3
 
 # day4上午 异构计算与Ascend C算子编程导论
 课件：
@@ -204,4 +204,11 @@ https://competition.gitcode.com/competition/2094721134930419714/intro
 
 产出：
 
-https://coyilla.github.io/cann_ascend_c_basic_note
+https://coyilla.github.io/posts/tech/2026_10_cann_ascend_c_basic_note
+
+# day5上午 03-Ascend C Memory 矢量算子开发
+
+课件：
+
+https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/08_a2a3_ascend_c_simd_memory_vector_operator_programming.pptx 
+

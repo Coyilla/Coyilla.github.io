@@ -9,7 +9,7 @@ series = ["CANN训练营"]
 
 # 1 简介
 
-见[【CANN训练营】Qwen3-8B 推理优化实践食用指南](https://coyilla.github.io/posts/cann_qwen3_8b_1/)
+见[【CANN训练营】Qwen3-8B 推理优化实践食用指南](https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1/)
 
 # 2 Baseline跑通
 

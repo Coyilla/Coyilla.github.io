@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/posts/cann_ascend_c_basic_note/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/</loc>
     <lastmod>2026-10-15T13:41:41+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/tags/ascend-c/</loc>
@@ -35,19 +35,22 @@
     <loc>http://localhost:1313/tags/%E7%AE%97%E5%AD%90%E5%BC%80%E5%8F%91/</loc>
     <lastmod>2026-10-15T13:41:41+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/cann_index/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_cann_index/</loc>
+    <lastmod>2026-10-15T10:49:27+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/%E8%AE%B0%E5%BD%95/</loc>
     <lastmod>2026-10-15T10:49:27+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/tags/copilot/</loc>
     <lastmod>2026-10-15T09:21:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/how_to_use_copilot/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/</loc>
     <lastmod>2026-10-15T09:21:09+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/tags/%E5%B7%A5%E5%85%B7/</loc>
     <lastmod>2026-10-15T09:21:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/record_of_build_myself_blog/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/</loc>
     <lastmod>2026-10-14T23:05:01+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/tags/%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/</loc>
@@ -56,7 +59,7 @@
     <loc>http://localhost:1313/tags/%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/</loc>
     <lastmod>2026-10-14T23:05:01+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/cann_qwen3_8b_2_3/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</loc>
     <lastmod>2026-10-14T22:38:38+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/tags/qwen3-8b/</loc>
@@ -65,7 +68,7 @@
     <loc>http://localhost:1313/archives/</loc>
     <lastmod>2026-10-14T20:45:49+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/cann_qwen3_8b_1/</loc>
+    <loc>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/</loc>
     <lastmod>2026-10-14T20:13:41+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/posts/hello/</loc>

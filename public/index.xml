@@ -10,9 +10,9 @@
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>【CANN训练营】Ascend C算子开发基础知识碎碎念</title>
-      <link>http://localhost:1313/posts/cann_ascend_c_basic_note/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/</link>
       <pubDate>Thu, 15 Oct 2026 13:41:41 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_ascend_c_basic_note/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/</guid>
       <description>&lt;p&gt;课程目录：
 &lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&#34;&gt;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;-&amp;gt; 第二章：Ascend C算子开发基础知识的几个章节&lt;/p&gt;
@@ -47,9 +47,9 @@ sub_kernel.asc&lt;/p&gt;
     </item>
     <item>
       <title>【CANN训练营】课堂笔记</title>
-      <link>http://localhost:1313/posts/cann_index/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_index/</link>
       <pubDate>Thu, 15 Oct 2026 10:49:27 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_index/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_index/</guid>
       <description>&lt;h1 id=&#34;day1上午-cann基础&#34;&gt;day1上午 CANN基础&lt;/h1&gt;
 &lt;h2 id=&#34;part1-人工智能基础&#34;&gt;PART1 人工智能基础&lt;/h2&gt;
 &lt;h3 id=&#34;人工智能起源&#34;&gt;人工智能起源&lt;/h3&gt;
@@ -122,9 +122,9 @@ sub_kernel.asc&lt;/p&gt;
     </item>
     <item>
       <title>GitHub Copilot 使用指南</title>
-      <link>http://localhost:1313/posts/how_to_use_copilot/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/</link>
       <pubDate>Thu, 15 Oct 2026 09:21:09 +0800</pubDate>
-      <guid>http://localhost:1313/posts/how_to_use_copilot/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/</guid>
       <description>&lt;h1 id=&#34;github-copilot-使用指南&#34;&gt;GitHub Copilot 使用指南&lt;/h1&gt;
 &lt;p&gt;适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI&lt;/p&gt;
 &lt;p&gt;核心形态：Inline Completion（补全） + Inline Chat（行内对话） + Copilot Chat（侧边栏对话） + Edit Mode（多文件编辑） + Agent Mode（自主代理） + Cloud Coding Agent（云端建 PR）&lt;/p&gt;
@@ -183,9 +183,9 @@ sub_kernel.asc&lt;/p&gt;
     </item>
     <item>
       <title>个人博客搭建记录</title>
-      <link>http://localhost:1313/posts/record_of_build_myself_blog/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/</link>
       <pubDate>Wed, 14 Oct 2026 23:05:01 +0800</pubDate>
-      <guid>http://localhost:1313/posts/record_of_build_myself_blog/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/</guid>
       <description>&lt;h1 id=&#34;开始&#34;&gt;开始&lt;/h1&gt;
 &lt;p&gt;这篇文章记录一下我搭建博客时踩过的坑&amp;hellip;&lt;/p&gt;
 &lt;h2 id=&#34;1-为什么选-hugo和papermod-主题&#34;&gt;1. 为什么选 Hugo和PaperMod 主题&lt;/h2&gt;
@@ -211,17 +211,28 @@ sub_kernel.asc&lt;/p&gt;
 &lt;li&gt;在想一些不那么技术的事：把binggo之争放上来&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;附一张最初的博客，希望以后能坚持更新，改头换面
-&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/image1.png&#34;&gt;&lt;/p&gt;
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/image1.png&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;2026-10-15&#34;&gt;2026-10-15&lt;/h3&gt;
 &lt;p&gt;发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。&lt;/p&gt;
-&lt;p&gt;&lt;img alt=&#34;这是一个中文路径的图片文件，现在测试下&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/record_of_build_myself_blog/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260420193736_332_8.jpg&#34;&gt;&lt;/p&gt;
-&lt;p&gt;加了categories和tags&lt;/p&gt;</description>
+&lt;p&gt;&lt;img alt=&#34;这是一个中文路径的图片文件，现在测试下&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260420193736_332_8.jpg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;加了categories和tags&lt;/p&gt;
+&lt;h3 id=&#34;2026-10-15-1&#34;&gt;2026-10-15&lt;/h3&gt;
+&lt;p&gt;更改了post文件夹下文件的管理方式，改成这样：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;content/posts/  
+├── tech/  
+│   ├── 2026-10-hugo-blog-setup.md  
+│   └── 2026-10-git-commands.md  
+├── growth/  
+│   └── 2026-10-learning-method.md  
+└── weekly/  
+    └── 2026-10-weekly.md  
+&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）</title>
-      <link>http://localhost:1313/posts/cann_qwen3_8b_2_3/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</link>
       <pubDate>Wed, 14 Oct 2026 22:38:38 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_qwen3_8b_2_3/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</guid>
       <description>&lt;h1 id=&#34;1-简介&#34;&gt;1 简介&lt;/h1&gt;
 &lt;p&gt;见&lt;a href=&#34;https://coyilla.github.io/posts/cann_qwen3_8b_1/&#34;&gt;【CANN训练营】Qwen3-8B 推理优化实践食用指南&lt;/a&gt;&lt;/p&gt;
 &lt;h1 id=&#34;2-baseline跑通&#34;&gt;2 Baseline跑通&lt;/h1&gt;
@@ -443,9 +454,9 @@ sub_kernel.asc&lt;/p&gt;
     </item>
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践食用指南</title>
-      <link>http://localhost:1313/posts/cann_qwen3_8b_1/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/</link>
       <pubDate>Wed, 14 Oct 2026 20:13:41 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_qwen3_8b_1/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/</guid>
       <description>&lt;h2 id=&#34;课程内容&#34;&gt;课程内容&lt;/h2&gt;
 &lt;p&gt;课程资源：&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/llm_inference/qwen3_8b&#34; title=&#34;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&#34;&gt;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：&lt;/p&gt;

@@ -10,9 +10,9 @@
     <atom:link href="http://localhost:1313/tags/%E5%B7%A5%E5%85%B7/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>GitHub Copilot 使用指南</title>
-      <link>http://localhost:1313/posts/how_to_use_copilot/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/</link>
       <pubDate>Thu, 15 Oct 2026 09:21:09 +0800</pubDate>
-      <guid>http://localhost:1313/posts/how_to_use_copilot/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/</guid>
       <description>&lt;h1 id=&#34;github-copilot-使用指南&#34;&gt;GitHub Copilot 使用指南&lt;/h1&gt;
 &lt;p&gt;适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI&lt;/p&gt;
 &lt;p&gt;核心形态：Inline Completion（补全） + Inline Chat（行内对话） + Copilot Chat（侧边栏对话） + Edit Mode（多文件编辑） + Agent Mode（自主代理） + Cloud Coding Agent（云端建 PR）&lt;/p&gt;

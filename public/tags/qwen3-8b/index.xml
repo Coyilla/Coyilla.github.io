@@ -10,9 +10,9 @@
     <atom:link href="http://localhost:1313/tags/qwen3-8b/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）</title>
-      <link>http://localhost:1313/posts/cann_qwen3_8b_2_3/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</link>
       <pubDate>Wed, 14 Oct 2026 22:38:38 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_qwen3_8b_2_3/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</guid>
       <description>&lt;h1 id=&#34;1-简介&#34;&gt;1 简介&lt;/h1&gt;
 &lt;p&gt;见&lt;a href=&#34;https://coyilla.github.io/posts/cann_qwen3_8b_1/&#34;&gt;【CANN训练营】Qwen3-8B 推理优化实践食用指南&lt;/a&gt;&lt;/p&gt;
 &lt;h1 id=&#34;2-baseline跑通&#34;&gt;2 Baseline跑通&lt;/h1&gt;
@@ -234,9 +234,9 @@
     </item>
     <item>
       <title>【CANN训练营】Qwen3-8B 推理优化实践食用指南</title>
-      <link>http://localhost:1313/posts/cann_qwen3_8b_1/</link>
+      <link>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/</link>
       <pubDate>Wed, 14 Oct 2026 20:13:41 +0800</pubDate>
-      <guid>http://localhost:1313/posts/cann_qwen3_8b_1/</guid>
+      <guid>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/</guid>
       <description>&lt;h2 id=&#34;课程内容&#34;&gt;课程内容&lt;/h2&gt;
 &lt;p&gt;课程资源：&lt;a href=&#34;https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/llm_inference/qwen3_8b&#34; title=&#34;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&#34;&gt;cann-learning-hub/tutorials/llm_inference/qwen3_8b · CANN/cann-learning-hub - AtomGit&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;这个课程用 Qwen3-8B 模型，教你在昇腾 NPU 上做这几件事：&lt;/p&gt;

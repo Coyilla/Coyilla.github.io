@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>GitHub Copilot 使用指南 | Coyilla的技术随想录</title>
+<meta name="keywords" content="Copilot, 工具">
+<meta name="description" content="GitHub Copilot 使用指南
+适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI
+核心形态：Inline Completion（补全） &#43; Inline Chat（行内对话） &#43; Copilot Chat（侧边栏对话） &#43; Edit Mode（多文件编辑） &#43; Agent Mode（自主代理） &#43; Cloud Coding Agent（云端建 PR）
+
+1. 先建立心智模型
+GitHub Copilot 不是“一个聊天框”，而是一套分层能力：
+
+	
+			
+					层级
+					名字
+					你在干嘛
+					Copilot 在干嘛
+			
+	
+	
+			
+					L0
+					Autocomplete
+					写代码
+					在光标处补下一行/下一段
+			
+			
+					L1
+					Inline Chat
+					选中代码改代码
+					在当前文件里做定向修改
+			
+			
+					L2
+					Copilot Chat
+					问项目/问报错/问架构
+					读上下文，给解释、代码、命令
+			
+			
+					L3
+					Edit Mode
+					改几个文件
+					按你给的范围做受控编辑
+			
+			
+					L4
+					Agent Mode
+					给目标，不管步骤
+					自己读文件、跑命令、修错、迭代
+			
+			
+					L5
+					Coding Agent
+					给 issue / PR 描述
+					云端开分支、改代码、跑测试、提 PR
+			
+	
+
+一句话总结：">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Coyilla的技术随想录 (Alt + H)">Coyilla的技术随想录</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/" title="首页">
+                    <span>首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      GitHub Copilot 使用指南
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-10-15 09:21:09 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>8 min</span>
+
+</div>
+  </header> <details class="toc"  open>
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#github-copilot-%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97" aria-label="GitHub Copilot 使用指南">GitHub Copilot 使用指南</a><ul>
+                    
+            <li>
+                <a href="#1-%e5%85%88%e5%bb%ba%e7%ab%8b%e5%bf%83%e6%99%ba%e6%a8%a1%e5%9e%8b" aria-label="1. 先建立心智模型">1. 先建立心智模型</a></li>
+            <li>
+                <a href="#2-%e5%ae%89%e8%a3%85%e4%b8%8e%e7%99%bb%e5%bd%95" aria-label="2. 安装与登录">2. 安装与登录</a><ul>
+                    
+            <li>
+                <a href="#vs-code" aria-label="VS Code">VS Code</a></li>
+            <li>
+                <a href="#jetbrains" aria-label="JetBrains">JetBrains</a></li>
+            <li>
+                <a href="#cli" aria-label="CLI">CLI</a></li></ul>
+            </li>
+            <li>
+                <a href="#3-%e5%9f%ba%e7%a1%80%e7%94%a8%e6%b3%95inline-completion" aria-label="3. 基础用法：Inline Completion">3. 基础用法：Inline Completion</a><ul>
+                    
+            <li>
+                <a href="#%e5%bf%ab%e6%8d%b7%e9%94%aevs-code" aria-label="快捷键（VS Code）">快捷键（VS Code）</a></li>
+            <li>
+                <a href="#%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5" aria-label="最佳实践">最佳实践</a></li>
+            <li>
+                <a href="#next-edit-suggestionsnes" aria-label="Next Edit Suggestions（NES）">Next Edit Suggestions（NES）</a></li></ul>
+            </li>
+            <li>
+                <a href="#4-inline-chat%e5%9c%a8%e5%bd%93%e5%89%8d%e6%96%87%e4%bb%b6%e9%87%8c%e5%af%b9%e8%af%9d" aria-label="4. Inline Chat：在当前文件里对话">4. Inline Chat：在当前文件里对话</a><ul>
+                    
+            <li>
+                <a href="#%e5%bf%ab%e6%8d%b7%e9%94%ae" aria-label="快捷键">快捷键</a></li>
+            <li>
+                <a href="#%e7%a4%ba%e4%be%8b" aria-label="示例">示例</a></li>
+            <li>
+                <a href="#%e7%89%b9%e7%82%b9" aria-label="特点">特点</a></li></ul>
+            </li>
+            <li>
+                <a href="#5-copilot-chat%e9%a1%b9%e7%9b%ae%e7%ba%a7%e5%af%b9%e8%af%9d" aria-label="5. Copilot Chat：项目级对话">5. Copilot Chat：项目级对话</a><ul>
+                    
+            <li>
+                <a href="#%e6%89%93%e5%bc%80%e6%96%b9%e5%bc%8f" aria-label="打开方式">打开方式</a></li>
+            <li>
+                <a href="#%e8%83%bd%e5%b9%b2%e5%95%a5" aria-label="能干啥">能干啥</a></li>
+            <li>
+                <a href="#%e7%a4%ba%e4%be%8b-1" aria-label="示例">示例</a></li></ul>
+            </li>
+            <li>
+                <a href="#6-chat-participants%e8%81%8a%e5%a4%a9%e5%8f%82%e4%b8%8e%e8%80%85" aria-label="6. @：Chat Participants（聊天参与者）">6. @：Chat Participants（聊天参与者）</a><ul>
+                    
+            <li>
+                <a href="#%e5%b8%b8%e7%94%a8%e5%86%85%e7%bd%ae%e5%8f%82%e4%b8%8e%e8%80%85" aria-label="常用内置参与者">常用内置参与者</a><ul>
+                    
+            <li>
+                <a href="#workspace" aria-label="@workspace">@workspace</a></li>
+            <li>
+                <a href="#terminal" aria-label="@terminal">@terminal</a></li>
+            <li>
+                <a href="#vscode" aria-label="@vscode">@vscode</a></li>
+            <li>
+                <a href="#github" aria-label="@github">@github</a></li></ul>
+            </li>
+            <li>
+                <a href="#ide-%e7%89%b9%e6%9c%89%e5%8f%82%e4%b8%8e%e8%80%85" aria-label="IDE 特有参与者">IDE 特有参与者</a></li>
+            <li>
+                <a href="#%e8%87%aa%e5%ae%9a%e4%b9%89-agent" aria-label="自定义 agent">自定义 agent</a></li></ul>
+            </li>
+            <li>
+                <a href="#7-chat-variables--context-references%e4%b8%8a%e4%b8%8b%e6%96%87%e9%94%9a%e7%82%b9" aria-label="7. #：Chat Variables / Context References（上下文锚点）">7. #：Chat Variables / Context References（上下文锚点）</a><ul>
+                    
+            <li>
+                <a href="#%e5%b8%b8%e7%94%a8%e5%8f%98%e9%87%8f" aria-label="常用变量">常用变量</a></li>
+            <li>
+                <a href="#%e7%bb%84%e5%90%88%e4%bd%bf%e7%94%a8%e7%9a%84%e5%85%b3%e9%94%ae%e4%bb%b7%e5%80%bc" aria-label="组合使用的关键价值">组合使用的关键价值</a></li></ul>
+            </li>
+            <li>
+                <a href="#8-slash-commands%e6%96%9c%e6%9d%a0%e5%91%bd%e4%bb%a4" aria-label="8. /：Slash Commands（斜杠命令）">8. /：Slash Commands（斜杠命令）</a><ul>
+                    
+            <li>
+                <a href="#%e9%80%9a%e7%94%a8%e5%91%bd%e4%bb%a4" aria-label="通用命令">通用命令</a></li>
+            <li>
+                <a href="#%e7%a4%ba%e4%be%8b-2" aria-label="示例">示例</a></li>
+            <li>
+                <a href="#%e5%92%8c----%e7%bb%84%e5%90%88" aria-label="和 @ / # 组合">和 @ / # 组合</a></li></ul>
+            </li>
+            <li>
+                <a href="#9-chat-modesask--edit--plan--agent" aria-label="9. Chat Modes：Ask / Edit / Plan / Agent">9. Chat Modes：Ask / Edit / Plan / Agent</a><ul>
+                    
+            <li>
+                <a href="#ask-mode" aria-label="Ask Mode">Ask Mode</a></li>
+            <li>
+                <a href="#edit-mode" aria-label="Edit Mode">Edit Mode</a></li>
+            <li>
+                <a href="#plan-mode" aria-label="Plan Mode">Plan Mode</a></li>
+            <li>
+                <a href="#agent-mode" aria-label="Agent Mode">Agent Mode</a></li>
+            <li>
+                <a href="#agent-%e6%9d%83%e9%99%90" aria-label="Agent 权限">Agent 权限</a></li></ul>
+            </li>
+            <li>
+                <a href="#10-cloud-coding-agentgithub-%e4%be%a7" aria-label="10. Cloud Coding Agent（GitHub 侧）">10. Cloud Coding Agent（GitHub 侧）</a><ul>
+                    
+            <li>
+                <a href="#%e8%a7%a6%e5%8f%91%e6%96%b9%e5%bc%8f" aria-label="触发方式">触发方式</a></li>
+            <li>
+                <a href="#%e5%ae%83%e4%bc%9a%e5%81%9a%e4%bb%80%e4%b9%88" aria-label="它会做什么">它会做什么</a></li>
+            <li>
+                <a href="#%e9%80%82%e5%90%88%e5%9c%ba%e6%99%af" aria-label="适合场景">适合场景</a></li>
+            <li>
+                <a href="#%e4%b8%8d%e9%80%82%e5%90%88%e5%9c%ba%e6%99%af" aria-label="不适合场景">不适合场景</a></li></ul>
+            </li>
+            <li>
+                <a href="#11-mcp%e8%ae%a9-copilot-%e7%94%a8%e5%a4%96%e9%83%a8%e5%b7%a5%e5%85%b7" aria-label="11. MCP：让 Copilot 用外部工具">11. MCP：让 Copilot 用外部工具</a><ul>
+                    
+            <li>
+                <a href="#vs-code-%e9%85%8d%e7%bd%ae%e7%a4%ba%e4%be%8b" aria-label="VS Code 配置示例">VS Code 配置示例</a></li>
+            <li>
+                <a href="#agent-mode-%e9%87%8c%e5%8f%af%e4%bb%a5%e7%9b%b4%e6%8e%a5%e7%94%a8" aria-label="Agent Mode 里可以直接用">Agent Mode 里可以直接用</a></li></ul>
+            </li>
+            <li>
+                <a href="#12-%e8%87%aa%e5%ae%9a%e4%b9%89%e9%a1%b9%e7%9b%ae%e8%a7%84%e5%88%99%e8%ae%a9-copilot-%e5%83%8f%e5%9b%a2%e9%98%9f%e6%88%90%e5%91%98" aria-label="12. 自定义项目规则：让 Copilot 像团队成员">12. 自定义项目规则：让 Copilot 像团队成员</a><ul>
+                    
+            <li>
+                <a href="#githubcopilot-instructionsmd" aria-label=".github/copilot-instructions.md">.github/copilot-instructions.md</a></li>
+            <li>
+                <a href="#githubinstructionsinstructionsmd" aria-label=".github/instructions/*.instructions.md">.github/instructions/*.instructions.md</a></li>
+            <li>
+                <a href="#githubpromptspromptmd" aria-label=".github/prompts/*.prompt.md">.github/prompts/*.prompt.md</a></li>
+            <li>
+                <a href="#githubagentsagentmd" aria-label=".github/agents/*.agent.md">.github/agents/*.agent.md</a></li></ul>
+            </li>
+            <li>
+                <a href="#13-%e6%a8%a1%e5%9e%8b%e9%80%89%e6%8b%a9" aria-label="13. 模型选择">13. 模型选择</a><ul>
+                    
+            <li>
+                <a href="#%e7%bb%8f%e9%aa%8c%e5%bb%ba%e8%ae%ae" aria-label="经验建议">经验建议</a></li></ul>
+            </li>
+            <li>
+                <a href="#14-%e9%ab%98%e9%a2%91%e5%9c%ba%e6%99%af%e9%80%9f%e6%9f%a5" aria-label="14. 高频场景速查">14. 高频场景速查</a><ul>
+                    
+            <li>
+                <a href="#%e8%af%bb%e4%b8%8d%e6%87%82%e8%80%81%e4%bb%a3%e7%a0%81" aria-label="读不懂老代码">读不懂老代码</a></li>
+            <li>
+                <a href="#%e4%bf%ae%e6%8a%a5%e9%94%99" aria-label="修报错">修报错</a></li>
+            <li>
+                <a href="#%e5%86%99%e6%b5%8b%e8%af%95" aria-label="写测试">写测试</a></li>
+            <li>
+                <a href="#%e5%8a%a0%e5%8a%9f%e8%83%bd" aria-label="加功能">加功能</a></li>
+            <li>
+                <a href="#%e9%87%8d%e6%9e%84" aria-label="重构">重构</a></li>
+            <li>
+                <a href="#%e4%bb%a3%e7%a0%81%e8%af%84%e5%ae%a1" aria-label="代码评审">代码评审</a></li>
+            <li>
+                <a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e7%9b%b8%e5%85%b3" aria-label="数据库相关">数据库相关</a></li>
+            <li>
+                <a href="#devops" aria-label="DevOps">DevOps</a></li></ul>
+            </li>
+            <li>
+                <a href="#15-prompt-%e5%86%99%e6%b3%95%e5%88%ab%e5%86%99%e4%ba%ba%e8%af%9d%e5%86%99%e8%a7%84%e6%a0%bc" aria-label="15. Prompt 写法：别写“人话”，写“规格”">15. Prompt 写法：别写“人话”，写“规格”</a><ul>
+                    
+            <li>
+                <a href="#%e5%b7%ae%e7%9a%84%e5%86%99%e6%b3%95" aria-label="差的写法">差的写法</a></li>
+            <li>
+                <a href="#%e5%a5%bd%e7%9a%84%e5%86%99%e6%b3%95" aria-label="好的写法">好的写法</a></li>
+            <li>
+                <a href="#%e5%85%ac%e5%bc%8f" aria-label="公式">公式</a></li>
+            <li>
+                <a href="#%e7%a4%ba%e4%be%8b-3" aria-label="示例">示例</a></li></ul>
+            </li>
+            <li>
+                <a href="#16-%e5%b7%a5%e4%bd%9c%e6%b5%81%e6%8e%a8%e8%8d%90" aria-label="16. 工作流推荐">16. 工作流推荐</a><ul>
+                    
+            <li>
+                <a href="#%e4%b8%aa%e4%ba%ba%e5%bc%80%e5%8f%91" aria-label="个人开发">个人开发</a></li>
+            <li>
+                <a href="#%e5%9b%a2%e9%98%9f%e5%bc%80%e5%8f%91" aria-label="团队开发">团队开发</a></li>
+            <li>
+                <a href="#vibe-coding-%e6%a8%a1%e5%bc%8f" aria-label="Vibe Coding 模式">Vibe Coding 模式</a></li></ul>
+            </li>
+            <li>
+                <a href="#17-%e5%b8%b8%e8%a7%81%e5%9d%91" aria-label="17. 常见坑">17. 常见坑</a><ul>
+                    
+            <li>
+                <a href="#1-%e5%ae%83%e5%be%88%e4%bc%9a%e7%bc%96%e4%bd%86%e4%b8%8d%e4%b8%80%e5%ae%9a%e5%af%b9" aria-label="1. 它很会编，但不一定对">1. 它很会编，但不一定对</a></li>
+            <li>
+                <a href="#2-%e5%a4%a7%e4%bb%93%e5%ba%93%e4%b8%8d%e4%bc%9a%e7%9c%9f%e7%9a%84%e6%87%82%e5%85%a8%e9%83%a8" aria-label="2. 大仓库不会“真的懂全部”">2. 大仓库不会“真的懂全部”</a></li>
+            <li>
+                <a href="#3-agent-%e4%bc%9a%e4%b9%b1%e8%b7%91" aria-label="3. Agent 会乱跑">3. Agent 会乱跑</a></li>
+            <li>
+                <a href="#4-%e6%b5%8b%e8%af%95%e9%80%9a%e8%bf%87%e4%ba%86%e4%bd%86%e6%b5%8b%e4%ba%86%e4%b8%aa%e5%af%82%e5%af%9e" aria-label="4. 测试通过了但测了个寂寞">4. 测试通过了但测了个寂寞</a></li>
+            <li>
+                <a href="#5-%e5%af%86%e9%92%a5%e9%85%8d%e7%bd%ae%e5%88%ab%e5%96%82%e7%bb%99%e5%ae%83" aria-label="5. 密钥/配置别喂给它">5. 密钥/配置别喂给它</a></li></ul>
+            </li>
+            <li>
+                <a href="#18-%e6%9d%83%e9%99%90%e4%b8%8e%e5%ae%89%e5%85%a8%e6%b8%85%e5%8d%95" aria-label="18. 权限与安全清单">18. 权限与安全清单</a></li>
+            <li>
+                <a href="#19-%e9%80%9f%e8%ae%b0%e5%8f%a3%e8%af%80" aria-label="19. 速记口诀">19. 速记口诀</a></li>
+            <li>
+                <a href="#20-%e4%b8%80%e4%b8%aa%e5%ae%8c%e6%95%b4%e4%be%8b%e5%ad%90" aria-label="20. 一个完整例子">20. 一个完整例子</a></li>
+            <li>
+                <a href="#21-%e6%80%bb%e7%bb%93" aria-label="21. 总结">21. 总结</a><ul>
+                    
+            <li>
+                <a href="#%e6%96%b0%e6%89%8b%e5%b1%82" aria-label="新手层">新手层</a></li>
+            <li>
+                <a href="#%e8%bf%9b%e9%98%b6%e5%b1%82" aria-label="进阶层">进阶层</a></li>
+            <li>
+                <a href="#%e4%b8%93%e4%b8%9a%e5%b1%82" aria-label="专业层">专业层</a>
+            </li>
+        </ul>
+        </li>
+        </ul>
+        </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><h1 id="github-copilot-使用指南">GitHub Copilot 使用指南<a hidden class="anchor" aria-hidden="true" href="#github-copilot-使用指南">#</a></h1>
+<p>适用环境：VS Code / Visual Studio / JetBrains IDE / Xcode / GitHub Web / CLI</p>
+<p>核心形态：Inline Completion（补全） + Inline Chat（行内对话） + Copilot Chat（侧边栏对话） + Edit Mode（多文件编辑） + Agent Mode（自主代理） + Cloud Coding Agent（云端建 PR）</p>
+<hr>
+<h2 id="1-先建立心智模型">1. 先建立心智模型<a hidden class="anchor" aria-hidden="true" href="#1-先建立心智模型">#</a></h2>
+<p>GitHub Copilot 不是“一个聊天框”，而是一套分层能力：</p>
+<table>
+	<thead>
+			<tr>
+					<th>层级</th>
+					<th>名字</th>
+					<th>你在干嘛</th>
+					<th>Copilot 在干嘛</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>L0</td>
+					<td>Autocomplete</td>
+					<td>写代码</td>
+					<td>在光标处补下一行/下一段</td>
+			</tr>
+			<tr>
+					<td>L1</td>
+					<td>Inline Chat</td>
+					<td>选中代码改代码</td>
+					<td>在当前文件里做定向修改</td>
+			</tr>
+			<tr>
+					<td>L2</td>
+					<td>Copilot Chat</td>
+					<td>问项目/问报错/问架构</td>
+					<td>读上下文，给解释、代码、命令</td>
+			</tr>
+			<tr>
+					<td>L3</td>
+					<td>Edit Mode</td>
+					<td>改几个文件</td>
+					<td>按你给的范围做受控编辑</td>
+			</tr>
+			<tr>
+					<td>L4</td>
+					<td>Agent Mode</td>
+					<td>给目标，不管步骤</td>
+					<td>自己读文件、跑命令、修错、迭代</td>
+			</tr>
+			<tr>
+					<td>L5</td>
+					<td>Coding Agent</td>
+					<td>给 issue / PR 描述</td>
+					<td>云端开分支、改代码、跑测试、提 PR</td>
+			</tr>
+	</tbody>
+</table>
+<p>一句话总结：</p>
+<ul>
+<li>写代码 → 用补全</li>
+<li>改当前文件 → Inline Chat</li>
+<li>问项目/调试 → Copilot Chat</li>
+<li>多文件功能 → Edit / Agent Mode</li>
+<li>团队异步流程 → Coding Agent</li>
+</ul>
+<hr>
+<h2 id="2-安装与登录">2. 安装与登录<a hidden class="anchor" aria-hidden="true" href="#2-安装与登录">#</a></h2>
+<h3 id="vs-code">VS Code<a hidden class="anchor" aria-hidden="true" href="#vs-code">#</a></h3>
+<p>扩展市场装两个：</p>
+<ul>
+<li>GitHub Copilot</li>
+<li>GitHub Copilot Chat</li>
+</ul>
+<p>登录 GitHub 账号，并根据需要订阅相应服务</p>
+<h3 id="jetbrains">JetBrains<a hidden class="anchor" aria-hidden="true" href="#jetbrains">#</a></h3>
+<p>设置 → Plugins → 搜索 GitHub Copilot</p>
+<h3 id="cli">CLI<a hidden class="anchor" aria-hidden="true" href="#cli">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gh copilot
+</span></span><span style="display:flex;"><span>gh copilot explain <span style="color:#0a3069">&#34;git rebase --onto&#34;</span>
+</span></span><span style="display:flex;"><span>gh copilot suggest <span style="color:#0a3069">&#34;find large files in repo&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="3-基础用法inline-completion">3. 基础用法：Inline Completion<a hidden class="anchor" aria-hidden="true" href="#3-基础用法inline-completion">#</a></h2>
+<p>边写边出灰色建议，这是 Copilot 的起点。</p>
+<h3 id="快捷键vs-code">快捷键（VS Code）<a hidden class="anchor" aria-hidden="true" href="#快捷键vs-code">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th>操作</th>
+					<th>Windows / Linux</th>
+					<th>macOS</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>接受建议</td>
+					<td>Tab</td>
+					<td>Tab</td>
+			</tr>
+			<tr>
+					<td>拒绝建议</td>
+					<td>Esc</td>
+					<td>Esc</td>
+			</tr>
+			<tr>
+					<td>下一条</td>
+					<td>Alt + ]</td>
+					<td>Option + ]</td>
+			</tr>
+			<tr>
+					<td>上一条</td>
+					<td>Alt + [</td>
+					<td>Option + [</td>
+			</tr>
+			<tr>
+					<td>手动触发</td>
+					<td>Alt + \</td>
+					<td>Option + \</td>
+			</tr>
+			<tr>
+					<td>打开补全面板</td>
+					<td>Ctrl + Enter</td>
+					<td>Cmd + Enter</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="最佳实践">最佳实践<a hidden class="anchor" aria-hidden="true" href="#最佳实践">#</a></h3>
+<p>不要只写变量名等让模型去猜测，而是写详细的意图注释，给出明确工作建议：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#57606a"># Load CSV, drop rows with missing target, normalize features,</span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a"># split 80/20, return X_train, y_train, X_test, y_test</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">prepare_dataset</span><span style="color:#1f2328">(</span>path<span style="color:#1f2328">:</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>相比：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">prepare_dataset</span><span style="color:#1f2328">(</span>path<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">...</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>明显质量更高。</p>
+<h3 id="next-edit-suggestionsnes">Next Edit Suggestions（NES）<a hidden class="anchor" aria-hidden="true" href="#next-edit-suggestionsnes">#</a></h3>
+<p>NES 不是“接着写”，而是“下一步该改哪”：</p>
+<ul>
+<li>重命名函数 → Copilot 提示调用点也要改</li>
+<li>改接口签名 → 提示实现类要同步</li>
+<li>侧边出现箭头 → Tab 跳过去接受</li>
+</ul>
+<p>适合重构，不只是写新代码。</p>
+<hr>
+<h2 id="4-inline-chat在当前文件里对话">4. Inline Chat：在当前文件里对话<a hidden class="anchor" aria-hidden="true" href="#4-inline-chat在当前文件里对话">#</a></h2>
+<h3 id="快捷键">快捷键<a hidden class="anchor" aria-hidden="true" href="#快捷键">#</a></h3>
+<ul>
+<li>VS Code：Ctrl + I / Cmd + I</li>
+<li>JetBrains：Ctrl + Shift + G（可自定义）</li>
+</ul>
+<h3 id="示例">示例<a hidden class="anchor" aria-hidden="true" href="#示例">#</a></h3>
+<ul>
+<li>把这个函数改成 async/await</li>
+<li>给这段代码加输入校验</li>
+<li>提取成独立模块，导出默认函数</li>
+<li>用策略模式重构这段 if-else</li>
+</ul>
+<h3 id="特点">特点<a hidden class="anchor" aria-hidden="true" href="#特点">#</a></h3>
+<ul>
+<li>作用域是当前文件 / 当前选择</li>
+<li>出 diff，可逐块接受</li>
+<li>不离开编辑器</li>
+</ul>
+<hr>
+<h2 id="5-copilot-chat项目级对话">5. Copilot Chat：项目级对话<a hidden class="anchor" aria-hidden="true" href="#5-copilot-chat项目级对话">#</a></h2>
+<h3 id="打开方式">打开方式<a hidden class="anchor" aria-hidden="true" href="#打开方式">#</a></h3>
+<ul>
+<li>VS Code：Ctrl + Alt + I / Cmd + Shift + I</li>
+<li>侧边栏点击 Copilot 图标</li>
+</ul>
+<h3 id="能干啥">能干啥<a hidden class="anchor" aria-hidden="true" href="#能干啥">#</a></h3>
+<ul>
+<li>解释代码</li>
+<li>找 bug</li>
+<li>写测试</li>
+<li>设计模块</li>
+<li>看架构</li>
+<li>解读终端报错</li>
+<li>生成 SQL / 正则 / Dockerfile / CI</li>
+</ul>
+<h3 id="示例-1">示例<a hidden class="anchor" aria-hidden="true" href="#示例-1">#</a></h3>
+<ul>
+<li>解释一下这个 Tokenizer 的分词逻辑</li>
+<li>为什么这个 React effect 会死循环？</li>
+<li>给 UserService 写 JUnit 5 测试，覆盖空指针和并发调用</li>
+</ul>
+<hr>
+<h2 id="6-chat-participants聊天参与者">6. @：Chat Participants（聊天参与者）<a hidden class="anchor" aria-hidden="true" href="#6-chat-participants聊天参与者">#</a></h2>
+<p><code>@</code> 用来切换“谁来回答你”。这不是普通关键词，而是把对话交给某个专用角色/域。</p>
+<h3 id="常用内置参与者">常用内置参与者<a hidden class="anchor" aria-hidden="true" href="#常用内置参与者">#</a></h3>
+<h4 id="workspace">@workspace<a hidden class="anchor" aria-hidden="true" href="#workspace">#</a></h4>
+<p>把整个工作区当上下文：</p>
+<ul>
+<li><code>@workspace 用户登录失败时在哪些文件里打了日志？</code></li>
+<li><code>@workspace 这个项目用了哪种认证流程？</code></li>
+<li><code>@workspace 为什么通知没有按时发送？</code></li>
+</ul>
+<p>适合：</p>
+<ul>
+<li>跨文件定位</li>
+<li>架构理解</li>
+<li>“这个项目里 X 是在哪里实现的”</li>
+</ul>
+<h4 id="terminal">@terminal<a hidden class="anchor" aria-hidden="true" href="#terminal">#</a></h4>
+<p>读取集成终端内容：</p>
+<ul>
+<li><code>@terminal 刚才那个 npm error 是什么意思？</code></li>
+<li><code>@terminal 怎么把上一条命令的报错修掉？</code></li>
+</ul>
+<h4 id="vscode">@vscode<a hidden class="anchor" aria-hidden="true" href="#vscode">#</a></h4>
+<p>问 VS Code 本身：</p>
+<ul>
+<li><code>@vscode 怎么把默认终端改成 fish？</code></li>
+<li><code>@vscode 怎么给 Copilot 配置快捷键？</code></li>
+</ul>
+<h4 id="github">@github<a hidden class="anchor" aria-hidden="true" href="#github">#</a></h4>
+<p>问 GitHub 侧对象（PR / issue / Actions / release 等，常配合 GitHub 技能或 MCP）：</p>
+<ul>
+<li><code>@github 列出我被分配的 open PR</code></li>
+<li><code>@github 这个 issue #142 的复现步骤是什么？</code></li>
+</ul>
+<h3 id="ide-特有参与者">IDE 特有参与者<a hidden class="anchor" aria-hidden="true" href="#ide-特有参与者">#</a></h3>
+<p>Visual Studio 中还有：</p>
+<ul>
+<li><code>@debug</code> / <code>@debugger</code>：结合调用栈、变量、断点排错</li>
+<li><code>@profiler</code>：性能瓶颈分析</li>
+<li><code>@test</code>：按项目测试框架生成单测</li>
+<li><code>@git</code>：审本地未提交改动</li>
+<li><code>@modernize</code>：.NET / C++ 升级迁移</li>
+</ul>
+<h3 id="自定义-agent">自定义 agent<a hidden class="anchor" aria-hidden="true" href="#自定义-agent">#</a></h3>
+<ul>
+<li><code>@security-reviewer 审计这段 SQL 拼接代码</code></li>
+<li><code>@tdd 用测试驱动方式实现购物车折扣逻辑</code></li>
+<li><code>@api-designer 设计一个分页 + 过滤的 REST 接口</code></li>
+</ul>
+<hr>
+<h2 id="7-chat-variables--context-references上下文锚点">7. #：Chat Variables / Context References（上下文锚点）<a hidden class="anchor" aria-hidden="true" href="#7-chat-variables--context-references上下文锚点">#</a></h2>
+<p><code>#</code> 不是装饰，而是把“具体上下文”钉进 prompt。</p>
+<h3 id="常用变量">常用变量<a hidden class="anchor" aria-hidden="true" href="#常用变量">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th>变量</th>
+					<th>含义</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>#file:src/auth.ts</code></td>
+					<td>把某个文件内容作为上下文</td>
+			</tr>
+			<tr>
+					<td><code>#selection</code></td>
+					<td>当前编辑器里选中的代码</td>
+			</tr>
+			<tr>
+					<td><code>#editor</code></td>
+					<td>当前打开的文件</td>
+			</tr>
+			<tr>
+					<td><code>#codebase</code></td>
+					<td>对整个代码库做语义检索</td>
+			</tr>
+			<tr>
+					<td><code>#terminalLastCommand</code></td>
+					<td>上一条终端命令及其输出</td>
+			</tr>
+			<tr>
+					<td><code>#terminalSelection</code></td>
+					<td>终端里框选的文本</td>
+			</tr>
+			<tr>
+					<td><code>#problems</code></td>
+					<td>Problems 面板里的错误/警告</td>
+			</tr>
+			<tr>
+					<td><code>#git</code></td>
+					<td>Git 状态 / diff / 变更</td>
+			</tr>
+			<tr>
+					<td><code>#changes</code></td>
+					<td>当前未提交改动</td>
+			</tr>
+			<tr>
+					<td><code>#web</code></td>
+					<td>联网搜索（部分环境/技能支持）</td>
+			</tr>
+			<tr>
+					<td><code>#fetch:https://...</code></td>
+					<td>抓取某个网页内容</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="组合使用的关键价值">组合使用的关键价值<a hidden class="anchor" aria-hidden="true" href="#组合使用的关键价值">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>@workspace /fix
+</span></span><span style="display:flex;"><span>#file:src/order_service.py
+</span></span><span style="display:flex;"><span>#terminalLastCommand
+</span></span><span style="display:flex;"><span>#problems
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>含义：在整个工作区语境下修 bug，重点看 <code>order_service.py</code>，并结合刚才终端报错和 Problems 面板。</p>
+<p>再比如：</p>
+<ul>
+<li>给 <code>#selection</code> 写单元测试，测试框架参考 <code>#file:tests/conftest.py</code></li>
+<li><code>#file:src/schema.sql</code> 根据这张表，生成 SQLAlchemy 模型</li>
+<li>解释 <code>#file:src/cache/lru.go</code> 和 <code>#file:src/cache/lfu.go</code> 的差异</li>
+</ul>
+<hr>
+<h2 id="8-slash-commands斜杠命令">8. /：Slash Commands（斜杠命令）<a hidden class="anchor" aria-hidden="true" href="#8-slash-commands斜杠命令">#</a></h2>
+<p><code>/</code> 是快捷动作，用于避免你写长 prompt。</p>
+<h3 id="通用命令">通用命令<a hidden class="anchor" aria-hidden="true" href="#通用命令">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th>命令</th>
+					<th>作用</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>/explain</code></td>
+					<td>解释选中代码</td>
+			</tr>
+			<tr>
+					<td><code>/fix</code></td>
+					<td>修选中代码里的错误</td>
+			</tr>
+			<tr>
+					<td><code>/tests</code></td>
+					<td>生成单测</td>
+			</tr>
+			<tr>
+					<td><code>/doc</code></td>
+					<td>补注释 / docstring / JSDoc</td>
+			</tr>
+			<tr>
+					<td><code>/simplify</code></td>
+					<td>简化代码</td>
+			</tr>
+			<tr>
+					<td><code>/new</code></td>
+					<td>脚手架新项目 / 新文件</td>
+			</tr>
+			<tr>
+					<td><code>/newNotebook</code></td>
+					<td>新建 Jupyter Notebook</td>
+			</tr>
+			<tr>
+					<td><code>/clear</code></td>
+					<td>清聊天历史</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="示例-2">示例<a hidden class="anchor" aria-hidden="true" href="#示例-2">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>/explain
+</span></span><span style="display:flex;"><span>/tests
+</span></span><span style="display:flex;"><span>/fix
+</span></span><span style="display:flex;"><span>/doc
+</span></span><span style="display:flex;"><span>/new react app with typescript and zustand
+</span></span><span style="display:flex;"><span>/new python fastapi project with sqlite
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="和----组合">和 <code>@</code> / <code>#</code> 组合<a hidden class="anchor" aria-hidden="true" href="#和----组合">#</a></h3>
+<ul>
+<li><code>@workspace /tests #file:src/payment.py</code></li>
+<li><code>@workspace /explain #file:src/scheduler/cron.go #file:src/scheduler/queue.go</code></li>
+</ul>
+<hr>
+<h2 id="9-chat-modesask--edit--plan--agent">9. Chat Modes：Ask / Edit / Plan / Agent<a hidden class="anchor" aria-hidden="true" href="#9-chat-modesask--edit--plan--agent">#</a></h2>
+<p>现代 Copilot Chat 底部通常有模式选择器。</p>
+<h3 id="ask-mode">Ask Mode<a hidden class="anchor" aria-hidden="true" href="#ask-mode">#</a></h3>
+<p>只说不做：</p>
+<ul>
+<li>解释</li>
+<li>调研</li>
+<li>给方案</li>
+<li>不改文件</li>
+</ul>
+<h3 id="edit-mode">Edit Mode<a hidden class="anchor" aria-hidden="true" href="#edit-mode">#</a></h3>
+<ul>
+<li>你指定文件 / 选择 / <code>#file</code></li>
+<li>Copilot 改几个文件</li>
+<li>出 diff，你逐文件接受</li>
+<li>适合“我知道要动哪些文件”</li>
+</ul>
+<h3 id="plan-mode">Plan Mode<a hidden class="anchor" aria-hidden="true" href="#plan-mode">#</a></h3>
+<ul>
+<li>只读探索代码</li>
+<li>输出实现计划</li>
+<li>不写代码</li>
+<li>适合大改动前的方案确认</li>
+</ul>
+<p>常见产物：</p>
+<ul>
+<li><code>plan.md</code></li>
+<li>修改文件清单</li>
+<li>风险点</li>
+<li>验证方式</li>
+</ul>
+<h3 id="agent-mode">Agent Mode<a hidden class="anchor" aria-hidden="true" href="#agent-mode">#</a></h3>
+<p>最像“编程同事”：</p>
+<ol>
+<li>你给目标</li>
+<li>它自己找文件</li>
+<li>改代码</li>
+<li>跑命令</li>
+<li>看报错</li>
+<li>再修</li>
+<li>直到任务完成或等你确认</li>
+</ol>
+<p>示例：</p>
+<blockquote>
+<p>给 Express 项目加滑动窗口限流中间件，支持 Redis，写单元测试，更新 README 的 API 说明</p>
+</blockquote>
+<p>它会：</p>
+<ul>
+<li>找路由文件</li>
+<li>建 <code>middleware/rateLimit.ts</code></li>
+<li>加 Redis client</li>
+<li>写 <code>*.test.ts</code></li>
+<li>跑 <code>npm test</code></li>
+<li>失败就自己看堆栈改</li>
+</ul>
+<h3 id="agent-权限">Agent 权限<a hidden class="anchor" aria-hidden="true" href="#agent-权限">#</a></h3>
+<p>终端命令默认要你批准：</p>
+<ul>
+<li>Allow once</li>
+<li>Allow for session</li>
+<li>Allow for workspace</li>
+<li>Deny</li>
+</ul>
+<p>可配置自动批准安全命令：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;chat.tools.terminal.autoApprove&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;git status&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">true</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;npm test&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">true</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;pytest&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">true</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;rm -rf&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">false</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;sudo&#34;</span><span style="color:#1f2328">:</span> <span style="color:#cf222e">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="10-cloud-coding-agentgithub-侧">10. Cloud Coding Agent（GitHub 侧）<a hidden class="anchor" aria-hidden="true" href="#10-cloud-coding-agentgithub-侧">#</a></h2>
+<p>不是本地 Agent，而是 GitHub 云端编码代理。</p>
+<h3 id="触发方式">触发方式<a hidden class="anchor" aria-hidden="true" href="#触发方式">#</a></h3>
+<ul>
+<li>把 GitHub Issue 分配给 Copilot</li>
+<li>PR 里 <code>@github-copilot</code> 叫它改</li>
+<li>VS Code / GitHub Web 里开 coding agent session</li>
+</ul>
+<h3 id="它会做什么">它会做什么<a hidden class="anchor" aria-hidden="true" href="#它会做什么">#</a></h3>
+<ol>
+<li>克隆仓库到沙箱</li>
+<li>读 issue / PR / instructions</li>
+<li>改代码</li>
+<li>跑测试 / lint</li>
+<li>开分支</li>
+<li>提 PR</li>
+<li>你评论后继续改</li>
+</ol>
+<h3 id="适合场景">适合场景<a hidden class="anchor" aria-hidden="true" href="#适合场景">#</a></h3>
+<ul>
+<li>修这个 bug</li>
+<li>给这个模块补测试</li>
+<li>把这段代码迁移到新 SDK</li>
+<li>根据 issue 实现功能</li>
+</ul>
+<h3 id="不适合场景">不适合场景<a hidden class="anchor" aria-hidden="true" href="#不适合场景">#</a></h3>
+<ul>
+<li>涉及密钥</li>
+<li>要改生产环境</li>
+<li>架构还没定</li>
+<li>业务规则模糊</li>
+</ul>
+<hr>
+<h2 id="11-mcp让-copilot-用外部工具">11. MCP：让 Copilot 用外部工具<a hidden class="anchor" aria-hidden="true" href="#11-mcp让-copilot-用外部工具">#</a></h2>
+<p>MCP = Model Context Protocol。</p>
+<p>Copilot 本来只会读代码，MCP 让它：</p>
+<ul>
+<li>查数据库</li>
+<li>调内部 API</li>
+<li>读 Postgres</li>
+<li>搜 GitHub Repo</li>
+<li>抓网页</li>
+<li>调 Jira / Notion / Figma</li>
+<li>跑公司内部工具</li>
+</ul>
+<h3 id="vs-code-配置示例">VS Code 配置示例<a hidden class="anchor" aria-hidden="true" href="#vs-code-配置示例">#</a></h3>
+<p><code>.vscode/mcp.json</code>：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#0550ae">&#34;mcp&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">&#34;servers&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&#34;filesystem&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;stdio&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;command&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;npx&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;args&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;-y&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;@modelcontextprotocol/server-filesystem&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;.&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&#34;github&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;stdio&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;command&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;npx&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;args&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;-y&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;@modelcontextprotocol/server-github&#34;</span><span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;env&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#0550ae">&#34;GITHUB_PERSONAL_ACCESS_TOKEN&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;${env:GITHUB_TOKEN}&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#1f2328">},</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#0550ae">&#34;postgres&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;type&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;stdio&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;command&#34;</span><span style="color:#1f2328">:</span> <span style="color:#0a3069">&#34;npx&#34;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">&#34;args&#34;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;-y&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;@modelcontextprotocol/server-postgres&#34;</span><span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;${env:DATABASE_URL}&#34;</span><span style="color:#1f2328">]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="agent-mode-里可以直接用">Agent Mode 里可以直接用<a hidden class="anchor" aria-hidden="true" href="#agent-mode-里可以直接用">#</a></h3>
+<ul>
+<li>查一下 postgres 里 <code>users</code> 表有多少重复 email</li>
+<li>从 GitHub repo <code>microsoft/vscode</code> 里找 terminal 相关 issue</li>
+</ul>
+<hr>
+<h2 id="12-自定义项目规则让-copilot-像团队成员">12. 自定义项目规则：让 Copilot 像团队成员<a hidden class="anchor" aria-hidden="true" href="#12-自定义项目规则让-copilot-像团队成员">#</a></h2>
+<p>很多平台会读取项目级说明文件：</p>
+<ul>
+<li><code>.github/copilot-instructions.md</code></li>
+<li><code>.github/instructions/*.instructions.md</code></li>
+<li><code>.github/prompts/*.prompt.md</code></li>
+<li><code>.github/agents/*.agent.md</code></li>
+<li><code>AGENTS.md</code></li>
+<li><code>CLAUDE.md</code></li>
+</ul>
+<p>这些内容会自动进入 Copilot 的上下文，给它“团队规范”。</p>
+<h3 id="githubcopilot-instructionsmd"><code>.github/copilot-instructions.md</code><a hidden class="anchor" aria-hidden="true" href="#githubcopilot-instructionsmd">#</a></h3>
+<p>这是最常见的项目规则入口：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-md" data-lang="md"><span style="display:flex;"><span># Copilot Instructions
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 后端用 Python 3.12 + FastAPI
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 所有接口返回统一结构：{ code, message, data }
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 数据库访问必须用 repository 层，不许在 route 里写 SQL
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 测试用 pytest，单测不连真实数据库
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 提交信息用 Conventional Commits
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 中文注释可以，公开 API 必须有英文 docstring
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="githubinstructionsinstructionsmd"><code>.github/instructions/*.instructions.md</code><a hidden class="anchor" aria-hidden="true" href="#githubinstructionsinstructionsmd">#</a></h3>
+<p>按文件类型自动加载：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-md" data-lang="md"><span style="display:flex;"><span># .github/instructions/react-ts.instructions.md
+</span></span><span style="display:flex;"><span>applyTo: &#34;**/*.tsx&#34;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 用函数组件 + hooks
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> props 必须显式类型
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 不允许 any
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 状态管理优先 zustand，不用 redux
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="githubpromptspromptmd"><code>.github/prompts/*.prompt.md</code><a hidden class="anchor" aria-hidden="true" href="#githubpromptspromptmd">#</a></h3>
+<p>可复用 prompt 模板：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-md" data-lang="md"><span style="display:flex;"><span># .github/prompts/write-adr.prompt.md
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>description: Write an architecture decision record
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>请为下面的决策写一份 ADR，包含：
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">1.</span> 背景
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">2.</span> 决策
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">3.</span> 备选方案
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">4.</span> 后果
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">5.</span> 后续动作
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>调用方式类似：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>/prompt:write-adr 我们要从 JWT 换成 OAuth2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="githubagentsagentmd"><code>.github/agents/*.agent.md</code><a hidden class="anchor" aria-hidden="true" href="#githubagentsagentmd">#</a></h3>
+<p>自定义 agent：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-md" data-lang="md"><span style="display:flex;"><span># .github/agents/security-reviewer.agent.md
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>name: security-reviewer
+</span></span><span style="display:flex;"><span>description: 审查代码中的安全漏洞，用于 PR 审查和代码审计
+</span></span><span style="display:flex;"><span>tools:
+</span></span><span style="display:flex;"><span>  <span style="color:#cf222e">-</span> codeSearch
+</span></span><span style="display:flex;"><span>  <span style="color:#cf222e">-</span> readFile
+</span></span><span style="display:flex;"><span>  <span style="color:#cf222e">-</span> listFiles
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>你是一名资深安全工程师。审查时重点关注：
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> SQL 注入
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> XSS
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> CSRF
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 硬编码密钥
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 权限绕过
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">-</span> 不安全的反序列化
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用方式：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>@security-reviewer 审计 src/auth/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="13-模型选择">13. 模型选择<a hidden class="anchor" aria-hidden="true" href="#13-模型选择">#</a></h2>
+<p>Chat / Agent 里通常可以切模型：</p>
+<ul>
+<li>GPT-4o / GPT-5.x（Copilot 默认系列）</li>
+<li>Claude Sonnet</li>
+<li>Gemini</li>
+<li>o-series / 推理模型</li>
+</ul>
+<h3 id="经验建议">经验建议<a hidden class="anchor" aria-hidden="true" href="#经验建议">#</a></h3>
+<ul>
+<li>写业务代码：默认模型就够</li>
+<li>复杂重构：强指令跟随模型</li>
+<li>算法/架构：推理模型</li>
+<li>大批量改文件：Agent + 强指令模型</li>
+<li>小补全：别用重模型，延迟重要</li>
+</ul>
+<hr>
+<h2 id="14-高频场景速查">14. 高频场景速查<a hidden class="anchor" aria-hidden="true" href="#14-高频场景速查">#</a></h2>
+<h3 id="读不懂老代码">读不懂老代码<a hidden class="anchor" aria-hidden="true" href="#读不懂老代码">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>@workspace 解释 OrderService.process() 的完整调用链
+</span></span><span style="display:flex;"><span>/explain
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="修报错">修报错<a hidden class="anchor" aria-hidden="true" href="#修报错">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>@workspace /fix
+</span></span><span style="display:flex;"><span>#terminalLastCommand
+</span></span><span style="display:flex;"><span>#problems
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="写测试">写测试<a hidden class="anchor" aria-hidden="true" href="#写测试">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>/tests
+</span></span><span style="display:flex;"><span>@workspace /tests #file:src/account.py
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="加功能">加功能<a hidden class="anchor" aria-hidden="true" href="#加功能">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Agent:
+</span></span><span style="display:flex;"><span>给用户表加 soft delete，
+</span></span><span style="display:flex;"><span>所有查询默认过滤已删除数据，
+</span></span><span style="display:flex;"><span>更新相关 repository 和 service，
+</span></span><span style="display:flex;"><span>并补测试
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="重构">重构<a hidden class="anchor" aria-hidden="true" href="#重构">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Plan:
+</span></span><span style="display:flex;"><span>把 utils/helpers.py 里 40 个函数按职责拆到
+</span></span><span style="display:flex;"><span>string/, date/, validation/ 三个模块，
+</span></span><span style="display:flex;"><span>保证现有测试通过
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="代码评审">代码评审<a hidden class="anchor" aria-hidden="true" href="#代码评审">#</a></h3>
+<ul>
+<li><code>@security-reviewer 审这次 PR 的 diff</code></li>
+<li><code>@github-copilot review 这个 PR 的性能和错误处理</code></li>
+</ul>
+<h3 id="数据库相关">数据库相关<a hidden class="anchor" aria-hidden="true" href="#数据库相关">#</a></h3>
+<ul>
+<li><code>#file:models/user.py</code> 根据这些模型生成 Alembic migration</li>
+<li>查 postgres 里最近 7 天登录失败最多的用户（MCP）</li>
+</ul>
+<h3 id="devops">DevOps<a hidden class="anchor" aria-hidden="true" href="#devops">#</a></h3>
+<p>生成一个 GitHub Actions：</p>
+<ul>
+<li>lint</li>
+<li>type check</li>
+<li>pytest</li>
+<li>仅在 <code>main</code> 和 PR 上跑</li>
+</ul>
+<hr>
+<h2 id="15-prompt-写法别写人话写规格">15. Prompt 写法：别写“人话”，写“规格”<a hidden class="anchor" aria-hidden="true" href="#15-prompt-写法别写人话写规格">#</a></h2>
+<h3 id="差的写法">差的写法<a hidden class="anchor" aria-hidden="true" href="#差的写法">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>帮我优化一下这个函数
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="好的写法">好的写法<a hidden class="anchor" aria-hidden="true" href="#好的写法">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>优化 src/cache/lru.py 的 get() 方法：
+</span></span><span style="display:flex;"><span>- 时间复杂度保持 O(1)
+</span></span><span style="display:flex;"><span>- 不要用额外 dict
+</span></span><span style="display:flex;"><span>- 保留线程安全注释
+</span></span><span style="display:flex;"><span>- 不改变公开接口
+</span></span><span style="display:flex;"><span>- 给出前后 benchmark 说明
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="公式">公式<a hidden class="anchor" aria-hidden="true" href="#公式">#</a></h3>
+<p><code>[动作] + [目标对象] + [约束] + [不动什么] + [验证方式] + [上下文]</code></p>
+<h3 id="示例-3">示例<a hidden class="anchor" aria-hidden="true" href="#示例-3">#</a></h3>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>动作：重构
+</span></span><span style="display:flex;"><span>对象：PaymentService.charge()
+</span></span><span style="display:flex;"><span>约束：不用第三方库，保持同步接口
+</span></span><span style="display:flex;"><span>不动：数据库表结构、公开方法签名
+</span></span><span style="display:flex;"><span>验证：现有 ChargeTest 全绿
+</span></span><span style="display:flex;"><span>上下文：#file:src/payment.py #file:tests/test_charge.py
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h2 id="16-工作流推荐">16. 工作流推荐<a hidden class="anchor" aria-hidden="true" href="#16-工作流推荐">#</a></h2>
+<h3 id="个人开发">个人开发<a hidden class="anchor" aria-hidden="true" href="#个人开发">#</a></h3>
+<ol>
+<li>写注释 / 类型 / 接口 → 用补全</li>
+<li>小改动 → Inline Chat</li>
+<li>不懂 → <code>@workspace /explain</code></li>
+<li>单文件改 → Edit Mode</li>
+<li>跨文件功能 → Agent Mode</li>
+<li>跑测试 → 让 agent 自己修红</li>
+</ol>
+<h3 id="团队开发">团队开发<a hidden class="anchor" aria-hidden="true" href="#团队开发">#</a></h3>
+<ol>
+<li>Issue 写清楚验收标准</li>
+<li>本地用 Agent 做实现</li>
+<li>PR 里让 Copilot 做 review</li>
+<li>重复坏味道写进 <code>copilot-instructions.md</code></li>
+<li>安全/性能/测试各有专用 agent</li>
+<li>大特性用 Plan Mode 先对齐</li>
+</ol>
+<h3 id="vibe-coding-模式">Vibe Coding 模式<a hidden class="anchor" aria-hidden="true" href="#vibe-coding-模式">#</a></h3>
+<p>做一个 Todo 应用：</p>
+<ul>
+<li>前端 React + Tailwind</li>
+<li>可以增删改、标记完成</li>
+<li>用 localStorage</li>
+<li>深色模式</li>
+<li>动画别太花</li>
+</ul>
+<p>然后：</p>
+<ul>
+<li>看效果</li>
+<li>说“卡片间距再大点”</li>
+<li>说“删除要有确认”</li>
+<li>说“加个空状态插画”</li>
+</ul>
+<p>你负责审美和判断，Copilot 负责码字。</p>
+<hr>
+<h2 id="17-常见坑">17. 常见坑<a hidden class="anchor" aria-hidden="true" href="#17-常见坑">#</a></h2>
+<h3 id="1-它很会编但不一定对">1. 它很会编，但不一定对<a hidden class="anchor" aria-hidden="true" href="#1-它很会编但不一定对">#</a></h3>
+<ul>
+<li>不存在的 API</li>
+<li>假参数</li>
+<li>假库版本</li>
+<li>假 SQL 函数</li>
+</ul>
+<p>结论：跑之前看 import、看签名、看版本。</p>
+<h3 id="2-大仓库不会真的懂全部">2. 大仓库不会“真的懂全部”<a hidden class="anchor" aria-hidden="true" href="#2-大仓库不会真的懂全部">#</a></h3>
+<p><code>@workspace</code> 不是无限上下文：</p>
+<ul>
+<li>索引有上限</li>
+<li>打开相关文件会更好</li>
+<li>用 <code>#file</code> 比靠它猜更稳</li>
+</ul>
+<h3 id="3-agent-会乱跑">3. Agent 会乱跑<a hidden class="anchor" aria-hidden="true" href="#3-agent-会乱跑">#</a></h3>
+<ul>
+<li>改了不该改的文件</li>
+<li>顺手改 lint 配置</li>
+<li>把 seed 数据删了</li>
+<li>自动加依赖</li>
+</ul>
+<p>结论：Agent 跑完一定看 diff，不要无脑 Accept All。</p>
+<h3 id="4-测试通过了但测了个寂寞">4. 测试通过了但测了个寂寞<a hidden class="anchor" aria-hidden="true" href="#4-测试通过了但测了个寂寞">#</a></h3>
+<p>Copilot 可能：</p>
+<ul>
+<li><code>assert</code> 写错</li>
+<li>只测 happy path</li>
+<li>mock 掉关键逻辑</li>
+<li>用 <code>assert True</code></li>
+</ul>
+<p>结论：看测试到底验证了什么。</p>
+<h3 id="5-密钥配置别喂给它">5. 密钥/配置别喂给它<a hidden class="anchor" aria-hidden="true" href="#5-密钥配置别喂给它">#</a></h3>
+<ul>
+<li><code>.env</code></li>
+<li>生产连接串</li>
+<li>AWS key</li>
+<li>用户数据</li>
+</ul>
+<p>结论：用 <code>#file</code> 时别把 secrets 文件拖进去。</p>
+<hr>
+<h2 id="18-权限与安全清单">18. 权限与安全清单<a hidden class="anchor" aria-hidden="true" href="#18-权限与安全清单">#</a></h2>
+<p>提交 Copilot 代码前检查：</p>
+<ul>
+<li>没有硬编码 secret</li>
+<li>SQL 不是字符串拼接</li>
+<li>用户输入做了校验</li>
+<li>权限/鉴权没被绕开</li>
+<li>外部命令没裸拼 shell</li>
+<li>依赖不是瞎加的</li>
+<li>测试不是假通过</li>
+<li>日志没打敏感信息</li>
+<li>迁移脚本可回滚</li>
+</ul>
+<hr>
+<h2 id="19-速记口诀">19. 速记口诀<a hidden class="anchor" aria-hidden="true" href="#19-速记口诀">#</a></h2>
+<ul>
+<li>写代码：等补全，Tab 接受</li>
+<li>改代码：Ctrl + I</li>
+<li>问项目：<code>@workspace</code></li>
+<li>问终端：<code>@terminal</code></li>
+<li>问 VS Code：<code>@vscode</code></li>
+<li>问 GitHub：<code>@github</code></li>
+<li>钉文件：<code>#file:</code></li>
+<li>钉报错：<code>#terminalLastCommand</code></li>
+<li>钉问题：<code>#problems</code></li>
+<li>快捷动作：<code>/explain /fix /tests /doc</code></li>
+<li>多文件：Edit Mode</li>
+<li>大任务：Agent Mode</li>
+<li>先别改：Plan Mode</li>
+<li>异步 PR：Coding Agent</li>
+<li>扩能力：MCP</li>
+<li>定规矩：<code>copilot-instructions.md</code></li>
+<li>建专家：<code>.github/agents/*.agent.md</code></li>
+</ul>
+<hr>
+<h2 id="20-一个完整例子">20. 一个完整例子<a hidden class="anchor" aria-hidden="true" href="#20-一个完整例子">#</a></h2>
+<p>你说：</p>
+<div class="highlight"><div style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>@workspace
+</span></span><span style="display:flex;"><span>Agent:
+</span></span><span style="display:flex;"><span>给项目加“导出订单为 CSV”的功能：
+</span></span><span style="display:flex;"><span>- 仅管理员可导出
+</span></span><span style="display:flex;"><span>- 支持按日期范围过滤
+</span></span><span style="display:flex;"><span>- 使用仓库层查询，不写裸 SQL
+</span></span><span style="display:flex;"><span>- 生成 FastAPI 路由 + service + 单测
+</span></span><span style="display:flex;"><span>- 更新 API 文档
+</span></span><span style="display:flex;"><span>上下文：
+</span></span><span style="display:flex;"><span>#file:src/orders/repository.py
+</span></span><span style="display:flex;"><span>#file:src/auth/dependencies.py
+</span></span><span style="display:flex;"><span>#file:tests/test_orders.py
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Copilot Agent 会：</p>
+<ol>
+<li>读 order repository</li>
+<li>看鉴权依赖</li>
+<li>加 <code>export_orders_csv()</code></li>
+<li>加路由 <code>/orders/export</code></li>
+<li>加 admin 权限检查</li>
+<li>写 <code>test_export_orders_csv.py</code></li>
+<li>跑 pytest</li>
+<li>失败就修</li>
+<li>最后给你 diff + 总结</li>
+</ol>
+<p>你只需要：</p>
+<ul>
+<li>看 diff</li>
+<li>改文案</li>
+<li>决定要不要合并</li>
+</ul>
+<hr>
+<h2 id="21-总结">21. 总结<a hidden class="anchor" aria-hidden="true" href="#21-总结">#</a></h2>
+<p>GitHub Copilot 的用法可以分三层：</p>
+<h3 id="新手层">新手层<a hidden class="anchor" aria-hidden="true" href="#新手层">#</a></h3>
+<ul>
+<li>Tab 补全</li>
+<li><code>/explain /fix /tests</code></li>
+<li>聊天问问题</li>
+</ul>
+<h3 id="进阶层">进阶层<a hidden class="anchor" aria-hidden="true" href="#进阶层">#</a></h3>
+<ul>
+<li><code>@workspace</code> 问整个项目</li>
+<li><code>#file #selection #problems</code> 精确喂上下文</li>
+<li>Edit Mode 做受控多文件修改</li>
+</ul>
+<h3 id="专业层">专业层<a hidden class="anchor" aria-hidden="true" href="#专业层">#</a></h3>
+<ul>
+<li>Agent Mode 自主实现功能</li>
+<li>Plan Mode 先出方案</li>
+<li>MCP 接数据库/内部系统</li>
+<li>自定义 agents / instructions / prompts</li>
+<li>Coding Agent 在 GitHub 上异步出 PR</li>
+</ul>
+<p>Copilot 不是代替你写代码，而是把“从想法到代码”的摩擦降到最低。
+但架构、安全、业务正确性，仍然必须是人的责任。</p>
+<hr>
+<blockquote>
+<p>结论：GitHub Copilot 的价值，不是“自动生成代码”，而是让开发者在思考、设计和验证中更高效、更稳健。</p>
+</blockquote>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/copilot/">Copilot</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%B7%A5%E5%85%B7/">工具</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on x"
+            href="https://x.com/intent/tweet/?text=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f&amp;hashtags=Copilot%2c%e5%b7%a5%e5%85%b7">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f&amp;title=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97&amp;summary=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f&title=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on whatsapp"
+            href="https://api.whatsapp.com/send?text=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on telegram"
+            href="https://telegram.me/share/url?text=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share GitHub Copilot 使用指南 on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=GitHub%20Copilot%20%e4%bd%bf%e7%94%a8%e6%8c%87%e5%8d%97&u=http%3a%2f%2flocalhost%3a1313%2fposts%2ftech%2f2026_10_how_to_use_copilot%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Coyilla的技术随想录</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
