@@ -206,7 +206,7 @@ https://competition.gitcode.com/competition/2094721134930419714/intro
 
 https://coyilla.github.io/posts/tech/2026_10_cann_ascend_c_basic_note
 
-# day5上午 03-Ascend C Memory 矢量算子开发
+# day5 03-Ascend C Memory 矢量算子开发
 
 课件：
 
@@ -231,4 +231,38 @@ AscendC::Div(yLocal, yLocal, xLocal, this->tileLength);`和`AscendC:Reciprocal(y
 Div(1, x) 是真除法，Reciprocal(x) 是近似倒数。数学上等价，但精度和性能不同。
 
 写了半天才写出来，纪念一下：
-![alt text](image.png)
+![alt text](image.png) 
+
+# day6上午 Ascend C 矩阵类算子编程
+课件：
+
+https://gitcode.com/cann/cann-learning-hub/blob/41e768012608f2104efc3f271ff9ddae9bc8c8b4/standard_course/01_bootcamp/two_weeks_course/10_a2a3_ascend_c_simd_matrix_operator_programming.pptx
+
+习题：
+
+https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development
+
+第四章矩阵算子开发
+
+同样，记录一下
+![alt text](image-1.png)
+
+# day7 Ascend C 融合算子编程
+课件：
+
+https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/09_a2a3_ascend_c_simd_fused_operator_programming.pptx
+
+https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development/05_fused_operator_development
+
+https://gitcode.com/cann/cann-learning-hub/blob/master/tutorials/ascendc_operator_development_light/03_simple_operator_practice/README.md
+
+上午：已签到  
+下午：已签到
+
+实践题目：
+https://cannjudge.cn/hz_cann/hzdz/matmul_sinh
+
+# day8 06-Ascend C 调试调优与最佳实践
+
+上午：已签到  
+下午：
