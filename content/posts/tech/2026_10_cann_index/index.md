@@ -262,7 +262,69 @@ https://gitcode.com/cann/cann-learning-hub/blob/master/tutorials/ascendc_operato
 实践题目：
 https://cannjudge.cn/hz_cann/hzdz/matmul_sinh
 
-# day8 06-Ascend C 调试调优与最佳实践
+# day8 Ascend C 调试调优与最佳实践
+课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/12_a2a3_ascend_c_operator_debugging_tuning_and_best_practices.pptx
 
 上午：已签到  
-下午：
+下午：已签到
+
+git clone https://gitcode.com/comic97/asc-devkit.git
+
+mindstdio  
+https://www.mindspore.cn/mindstudio/docs/zh-CN/82RC1/overview.html
+
+浏览器://tracing
+
+# day9 Ascend C 算子的PyTorch单算子调用
+课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/14_a2a3_ascend_c_operator_pytorch_single_operator_call.pptx
+
+上午：已签到  
+下午：已签到 
+
+![alt text](image-2.png)
+
+# day10 09-Ascend C 算子入图
+课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/15_a2a3_ascend_c_operator_graph_integration_pytorch_aclgraph_ge.pptx
+
+上午：已签到  
+下午：已签到
+
+实践内容：
+https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_framework/04_aclgraph/README.md
+
+![alt text](image-3.png)
+
+期间遇到一个问题：  
+用 cmake -DCMAKE_ASC_ARCHITECTURES=dav-2201 ... 配置后执行 make，bisheng 编译器报错：
+LLVM ERROR: PlugIn Error: no aicore arch specified.
+即编译命令中缺少 --npu-arch=dav-2201 参数。
+
+根因  
+CMAKE_ASC_ARCHITECTURES 的自动注入机制未被触发。按官方设计，CMake 应在 NPU 运行模式下自动把该变量转换为 --npu-arch=<value> 传给 bisheng，但实际未生效（可能与 find_package(ASC) 的变量读取时机、运行模式或项目 CMakeLists 的覆盖逻辑有关）。结果编译命令只有 --asc-aicore-lang，缺少架构参数。
+
+解决方案
+在 CMakeLists.txt 中手动为源文件强制注入编译参数，绕过自动机制：
+```
+cmake
+set_source_files_properties(add.asc PROPERTIES
+    COMPILE_FLAGS "--npu-arch=dav-2201"
+)
+```
+
+
+# day11 cannbot
+上午：已签到  
+下午：已签到
+
+# day12 softmax优化实践
+
+https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise
+
+上午：已签到  
+下午：已签到  
+
+https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise  
+https://cannjudge.cn/public/vector/softmaxrowfp32  
+https://gitcode.com/?tn=cannlab-environment  
+https://asc.gitcode.com/api/SIMD-API/basic_api/memory_vector_compute/SIMD_compute/  overview.html  
+
