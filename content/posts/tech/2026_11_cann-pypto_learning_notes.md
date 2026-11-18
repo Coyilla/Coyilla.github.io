@@ -8,6 +8,7 @@ category:
 tags:
   - CANN训练营
 slug: 2026_11_cann-pypto_learning_notes
+path: content/posts/{{category}}/[[]]
 ---
 # 如何开始
 
@@ -61,7 +62,7 @@ Output shape: torch.Size([1, 4, 1, 64])
 ✓ Hello world example passed
 ```
 使用pypto toolkit插件打开运行结果output下的program.json，即可得到计算图
-![file-20261030141039058.png](../file-20261030141039058.png)
+![file-20261030141039058.png](../../1-Projects/CANN%E8%AE%AD%E7%BB%83%E8%90%A5/_assets/%E3%80%90CANN%E8%AE%AD%E7%BB%83%E8%90%A5%E3%80%91cann-pypto%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/file-20261030141039058.png)
 ## 01_beginner
 ### basic
 #### basic_ops.py
