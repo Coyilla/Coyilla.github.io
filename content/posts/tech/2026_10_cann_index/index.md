@@ -330,5 +330,28 @@ https://asc.gitcode.com/api/SIMD-API/basic_api/memory_vector_compute/SIMD_comput
 
 # day13 matmul
 上午：已签到  
+下午：已签到  
 https://gitcode.com/cann/ops-nn/wiki/MatMul%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5%E4%B8%8E%E6%95%88%E6%9E%9C%E5%88%86%E6%9E%90.md
 
+https://gitcode.com/cann/cann-samples/blob/master/Samples/2_Performance/matmul_story/docs/quant_matmul_mxfp4_tutorials.md
+
+https://gitcode.com/cann/cann-samples/Samples/2_Performance/matmul_story/arch22/
+
+# day14 matmul+leakyReLU
+上午：已签到  
+下午：已签到 
+
+Samples/2_Performance/matmul_leakyrelu_fusion_story/fusion_tutorials
+https://gitcode.com/cann/cann-samples/tree/master/Samples/2_Performance/matmul_leakyrelu_fusion_story/fusion_tutorials
+
+# day15 pypto
+上午：已签到 
+下午：已签到  
+https://gitcode.com/cann/pypto  
+https://gitcode.com/cann/pypto-gym  
+https://gitcode.com/liulufang_gitcode/ops-transformer/blob/master/docs/zh/install/quick_install.md  
+![hello_world](image-4.png)
+https://www.hiascend.com/cann/download?versionId=813&ids=d802%2Ch0501%2Ch0601%2Ch0703&currentTab=0  
+
+# day16
+上午：已签到 
