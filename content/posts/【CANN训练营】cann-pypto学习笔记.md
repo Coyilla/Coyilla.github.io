@@ -1,8 +1,7 @@
 ---
 share: true
 title: '"{{title}}"'
-date:
-  "{ date:YYYY-MM-DD }":
+date: 2026-11-02
 draft: false
 categories:
   - Tech
