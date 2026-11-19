@@ -52,7 +52,7 @@ notebook里的每个代码块就是每次写一部分代码内容写到Sources/0
 # 02.04_introduction_to_kernel_functions_based_on_add_operator
 
 **习题：sub算子开发**
-sub_kernel.asc
+.[./././assets/sub_kernel.asc]
 
 
 **add作业题**

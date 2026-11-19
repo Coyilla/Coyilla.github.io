@@ -231,7 +231,7 @@ AscendC::Div(yLocal, yLocal, xLocal, this->tileLength);`和`AscendC:Reciprocal(y
 Div(1, x) 是真除法，Reciprocal(x) 是近似倒数。数学上等价，但精度和性能不同。
 
 写了半天才写出来，纪念一下：
-![alt text](image.png) 
+![alt text](/assets/2026_10_cann_index_image.png) 
 
 # day6上午 Ascend C 矩阵类算子编程
 课件：
@@ -245,7 +245,7 @@ https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operato
 第四章矩阵算子开发
 
 同样，记录一下
-![alt text](image-1.png)
+![alt text](/assets/2026_10_cann_index_image-1.png)
 
 # day7 Ascend C 融合算子编程
 课件：
@@ -281,7 +281,7 @@ https://www.mindspore.cn/mindstudio/docs/zh-CN/82RC1/overview.html
 上午：已签到  
 下午：已签到 
 
-![alt text](image-2.png)
+![alt text](/assets/2026_10_cann_index_image-2.png)
 
 # day10 09-Ascend C 算子入图
 课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/15_a2a3_ascend_c_operator_graph_integration_pytorch_aclgraph_ge.pptx
@@ -292,7 +292,7 @@ https://www.mindspore.cn/mindstudio/docs/zh-CN/82RC1/overview.html
 实践内容：
 https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_framework/04_aclgraph/README.md
 
-![alt text](image-3.png)
+![alt text](/assets/2026_10_cann_index_image-3.png)
 
 期间遇到一个问题：  
 用 cmake -DCMAKE_ASC_ARCHITECTURES=dav-2201 ... 配置后执行 make，bisheng 编译器报错：
@@ -350,7 +350,7 @@ https://gitcode.com/cann/cann-samples/tree/master/Samples/2_Performance/matmul_l
 https://gitcode.com/cann/pypto  
 https://gitcode.com/cann/pypto-gym  
 https://gitcode.com/liulufang_gitcode/ops-transformer/blob/master/docs/zh/install/quick_install.md  
-![hello_world](image-4.png)
+![hello_world](/assets/2026_10_cann_index_image-4.png)
 https://www.hiascend.com/cann/download?versionId=813&ids=d802%2Ch0501%2Ch0601%2Ch0703&currentTab=0  
 
 # day16

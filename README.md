@@ -33,7 +33,7 @@ hugo server -D
 ```
 ### 创建文章（文件夹模式，方便放图片）
 ```
-hugo new content posts/文章名/index.md
+hugo new content posts/{{category}}/文章名.md
 ```
 编辑文章，写完把 draft 改为 false
 ### 本地预览确认
