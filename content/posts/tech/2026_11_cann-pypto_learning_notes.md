@@ -61,7 +61,7 @@ Output shape: torch.Size([1, 4, 1, 64])
 ✓ Hello world example passed
 ```
 使用pypto toolkit插件打开运行结果output下的program.json，即可得到计算图
-![file-20261030141039058.png](../../../assets/file-20261030141039058.png)
+![file-20261030141039058.png](/assets/file-20261030141039058.png)
 ## 01_beginner
 ### basic
 #### basic_ops.py
