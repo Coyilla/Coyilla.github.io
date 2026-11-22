@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>DeepAgents on Coyilla的技术随想录</title>
+    <link>http://localhost:1313/tags/deepagents/</link>
+    <description>Recent content in DeepAgents on Coyilla的技术随想录</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 22 Nov 2026 16:52:32 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/deepagents/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Deepagents-in-action task2笔记</title>
+      <link>http://localhost:1313/posts/tech/2026_11_deepagents_in_action_task2_notes/</link>
+      <pubDate>Sun, 22 Nov 2026 16:52:32 +0800</pubDate>
+      <guid>http://localhost:1313/posts/tech/2026_11_deepagents_in_action_task2_notes/</guid>
+      <description>&lt;h1 id=&#34;课程地址&#34;&gt;课程地址：&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;https://datawhalechina.github.io/deepagents-in-action/chapters/ch01-agent-harness/&#34;&gt;https://datawhalechina.github.io/deepagents-in-action/chapters/ch01-agent-harness/&lt;/a&gt;
+&lt;a href=&#34;https://datawhalechina.github.io/deepagents-in-action/chapters/ch02-quickstart/&#34;&gt;https://datawhalechina.github.io/deepagents-in-action/chapters/ch02-quickstart/&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id=&#34;个人项目代码&#34;&gt;个人项目代码：&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/Coyilla/deepagents-in-action-course/blob/master/ep02_helloworld.ipynb&#34;&gt;https://github.com/Coyilla/deepagents-in-action-course/blob/master/ep02_helloworld.ipynb&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id=&#34;task2任务&#34;&gt;task2任务&lt;/h1&gt;
+&lt;h2 id=&#34;任务一跑通hello-world天气假工具&#34;&gt;任务一：跑通hello world（天气假工具）&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;file-20261122164300965.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261122164300965.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;任务二货币单位转换器&#34;&gt;任务二：货币单位转换器&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;file-20261122164233105.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261122164233105.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;任务三搜索工具&#34;&gt;任务三：搜索工具&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;file-20261122164204230.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261122164204230.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;langsmith看一次完整-trace&#34;&gt;LangSmith，看一次完整 Trace&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;file-20261122163921427.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261122163921427.png&#34;&gt;
+&lt;img alt=&#34;file-20261122163852575.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261122163852575.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -38,12 +38,12 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 - 在想一些不那么技术的事：把binggo之争放上来
 
 附一张最初的博客，希望以后能坚持更新，改头换面
-![](/content/assets/2026_10_record_of_build_myself_blog_image1.png)
+![](/assets/2026_10_record_of_build_myself_blog_image1.png)
 
 ### 2026-10-15
 发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。
 
-![这是一个中文路径的图片文件，现在测试下](/content/assets/2026_10_record_of_build_myself_blog_微信图片_20260420193736_332_8.jpg)
+![这是一个中文路径的图片文件，现在测试下](/assets/2026_10_record_of_build_myself_blog_微信图片_20260420193736_332_8.jpg)
 
 加了categories和tags
 

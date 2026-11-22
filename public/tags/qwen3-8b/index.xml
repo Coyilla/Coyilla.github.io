@@ -14,7 +14,7 @@
       <pubDate>Wed, 14 Oct 2026 22:38:38 +0800</pubDate>
       <guid>http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/</guid>
       <description>&lt;h1 id=&#34;1-简介&#34;&gt;1 简介&lt;/h1&gt;
-&lt;p&gt;见&lt;a href=&#34;https://coyilla.github.io/posts/cann_qwen3_8b_1/&#34;&gt;【CANN训练营】Qwen3-8B 推理优化实践食用指南&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;见&lt;a href=&#34;https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1/&#34;&gt;【CANN训练营】Qwen3-8B 推理优化实践食用指南&lt;/a&gt;&lt;/p&gt;
 &lt;h1 id=&#34;2-baseline跑通&#34;&gt;2 Baseline跑通&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;notebook地址&lt;/strong&gt;：gitcode.com/cann/cann-learning-hub/tutorials/llm_inference/qwen3_8b/02_baseline_inference.ipynb&lt;/p&gt;
 &lt;h2 id=&#34;21-环境与工作区准备&#34;&gt;2.1 环境与工作区准备&lt;/h2&gt;

@@ -17,11 +17,11 @@ https://github.com/Coyilla/deepagents-in-action-course/blob/master/ep02_hellowor
 
 # task2任务
 ## 任务一：跑通hello world（天气假工具）
-![file-20261122164300965.png](../../assets/file-20261122164300965.png)
+![file-20261122164300965.png](/assets/file-20261122164300965.png)
 ## 任务二：货币单位转换器
-![file-20261122164233105.png](../../assets/file-20261122164233105.png)
+![file-20261122164233105.png](/assets/file-20261122164233105.png)
 ## 任务三：搜索工具
-![file-20261122164204230.png](../../assets/file-20261122164204230.png)
+![file-20261122164204230.png](/assets/file-20261122164204230.png)
 ## LangSmith，看一次完整 Trace
-![file-20261122163921427.png](../../assets/file-20261122163921427.png)
-![file-20261122163852575.png](../../assets/file-20261122163852575.png)
+![file-20261122163921427.png](/assets/file-20261122163921427.png)
+![file-20261122163852575.png](/assets/file-20261122163852575.png)

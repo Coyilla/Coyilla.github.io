@@ -35,7 +35,7 @@ uv cache clean
 uv tool install --upgrade agentseek
 ```
 重启powershell并检查
-![file-20261116163548415.png](../../assets/file-20261116163548415.png)
+![file-20261116163548415.png](/assets/file-20261116163548415.png)
 
 # 2 探究：agentseek create --list-templates --checkout main命令在干什么
 ```
@@ -248,4 +248,4 @@ Timed out waiting for 'http://localhost:2024' to become ready: <urlopen error ti
 也是改了一个下午+晚上才发现问题改过来。另外wsl最好改成mirrored模式。
 
 # 终于成功了
-![file-20261117000306856.png](../../assets/file-20261117000306856.png)
+![file-20261117000306856.png](/assets/file-20261117000306856.png)

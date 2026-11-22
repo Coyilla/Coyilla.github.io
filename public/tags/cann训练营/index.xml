@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>CANN训练营 on Coyilla的技术随想录</title>
+    <link>http://localhost:1313/tags/cann%E8%AE%AD%E7%BB%83%E8%90%A5/</link>
+    <description>Recent content in CANN训练营 on Coyilla的技术随想录</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 02 Nov 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/cann%E8%AE%AD%E7%BB%83%E8%90%A5/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CANN训练营】cann-pypto学习笔记</title>
+      <link>http://localhost:1313/posts/tech/2026_11_cann-pypto_learning_notes/</link>
+      <pubDate>Mon, 02 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/tech/2026_11_cann-pypto_learning_notes/</guid>
+      <description>&lt;h1 id=&#34;如何开始&#34;&gt;如何开始&lt;/h1&gt;
+&lt;p&gt;代码仓库：
+&lt;a href=&#34;https://gitcode.com/cann/pypto&#34;&gt;https://gitcode.com/cann/pypto&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;记得先根据pypto/examples/README.md，进行环境准备、软件安装和运行前配置。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt;
+CANN 9.0.0 与 PyPTO 0.3.0 的版本不匹配。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;CANN 版本&lt;/th&gt;
+					&lt;th&gt;对应的 PyPTO 版本&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;9.0.0&lt;/td&gt;
+					&lt;td&gt;0.2.0&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;9.1.0 及之后&lt;/td&gt;
+					&lt;td&gt;已集成 PyPTO，无需单独编译&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;所以如果用的CANN是9.0.0，不能使用主分支的pypto，要先将分支切到v0.2.0&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;git checkout r0.2.0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;(当然也可以把cann升级到9.2.0)&lt;/p&gt;
+&lt;h1 id=&#34;开始运行&#34;&gt;开始运行&lt;/h1&gt;
+&lt;h2 id=&#34;00_hello_world&#34;&gt;00_hello_world&lt;/h2&gt;
+&lt;p&gt;hello_world.py
+编译输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;============================================================
+PyPTO hello_world Example
+============================================================
+
+Running Example hello_world::test_add_direct: hello_world
+Start time: 2026-10-30 02:26:51
+Total Core:73
+Total Task Count:1
+|--Fake Task Count:0
+Parse Swim json and Topo json Data End
+
+-------- AICORE Prof Summary --------
+AICore End-to-End Time: 1.87
+AICore Utilization:     1.39%
+-------------------------------------
+Generate Bubble Analysis Report: /mnt/workspace/gitCode/pypto/examples/00_hello_world/output/output_20261030_102638_784416_49116_C0A85CC6/CostModelSimulationOutput/bubble_analysis.log
+Convert To perfetto trace End
+Open the trace at https://ui.perfetto.dev/ 
+Output:  /mnt/workspace/gitCode/pypto/examples/00_hello_world/output/output_20261030_102638_784416_49116_C0A85CC6/CostModelSimulationOutput/merged_swimlane.json
+End time: 2026-10-30 02:26:51
+Time taken: 0 secs
+Input0 shape: torch.Size([1, 4, 1, 64])
+Input1 shape: torch.Size([1, 4, 1, 64])
+Output shape: torch.Size([1, 4, 1, 64])
+✓ Hello world example passed
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用pypto toolkit插件打开运行结果output下的program.json，即可得到计算图
+&lt;img alt=&#34;file-20261030141039058.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/assets/file-20261030141039058.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

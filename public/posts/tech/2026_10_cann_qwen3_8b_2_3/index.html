@@ -227,7 +227,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 这段代码是整个教程的环境准备阶段，核心目标是：把当前 Notebook 进程配置成“可以在昇腾 NPU 上跑 Qwen3-8B 推理”的完整环境。">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2fd9135862a3da866393a267370bb97cd812193a02eb63558b88b00f30ec3648.css" integrity="sha256-L9kTWGKj2oZjk6JnNwu5fNgSGToC62NVi4iwDzDsNkg=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -345,7 +345,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
     </h1>
     <div class="post-meta">
 
-<span title='2026-10-14 22:38:38 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span>
+<span title='2026-10-14T22:38:38+08:00'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span>
 
 </div>
   </header> <details class="toc"  open>
@@ -371,7 +371,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
             <li>
                 <a href="#223-%e8%af%bb%e5%8f%96recipes%e8%bf%90%e8%a1%8c%e7%bb%93%e6%9e%9c" aria-label="2.2.3 读取recipes运行结果">2.2.3 读取recipes运行结果</a></li>
             <li>
-                <a href="#23-%e6%9f%a5%e7%9c%8b%e7%bb%93%e6%9e%9c" aria-label="2.3 查看结果">2.3 查看结果</a></li></ul>
+                <a href="#23-%e6%9f%a5%e7%9c%8b%e7%bb%93%e6%9e%9c" aria-label=" 2.3 查看结果"> 2.3 查看结果</a></li></ul>
             </li>
             <li>
                 <a href="#3-profiling%e5%88%86%e6%9e%90" aria-label="3 Profiling分析">3 Profiling分析</a><ul>
@@ -392,7 +392,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 </details>
 
   <div class="post-content md-content"><h1 id="1-简介">1 简介<a hidden class="anchor" aria-hidden="true" href="#1-简介">#</a></h1>
-<p>见<a href="https://coyilla.github.io/posts/cann_qwen3_8b_1/">【CANN训练营】Qwen3-8B 推理优化实践食用指南</a></p>
+<p>见<a href="https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1/">【CANN训练营】Qwen3-8B 推理优化实践食用指南</a></p>
 <h1 id="2-baseline跑通">2 Baseline跑通<a hidden class="anchor" aria-hidden="true" href="#2-baseline跑通">#</a></h1>
 <p><strong>notebook地址</strong>：gitcode.com/cann/cann-learning-hub/tutorials/llm_inference/qwen3_8b/02_baseline_inference.ipynb</p>
 <h2 id="21-环境与工作区准备">2.1 环境与工作区准备<a hidden class="anchor" aria-hidden="true" href="#21-环境与工作区准备">#</a></h2>
@@ -610,7 +610,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 </div>
 </div><p>这段代码是整个教程的环境准备阶段，核心目标是：把当前 Notebook 进程配置成“可以在昇腾 NPU 上跑 Qwen3-8B 推理”的完整环境。</p>
 <p>执行对应单元格即可。</p>
-<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image1.png"><br>
+<p><img loading="lazy" src="/assets/2026_10_cann_qwen3_8b_2_3_image1.png"><br>
 这部分代码完成了环境准备工作：先通过多策略定位并切换到教程仓库根目录，然后设置模型下载后端、 tokenizer 并行开关和可见NPU卡号等基础环境变量；接着通过执行CANN的set_env.sh脚本，把昇腾工具链所需的全部环境变量导入当前Notebook进程；随后读取requirements.txt并检查当前Python环境的依赖版本，若有缺失或不匹配则自动用清华镜像源安装补齐；最后定义recipes推理框架、YAML配置文件、推理入口脚本和模型ID等路径常量，并打印环境摘要供确认，为后续在昇腾NPU上运行Qwen3-8B推理和Profiling采集做好了完整的运行环境准备。</p>
 <h2 id="22-查看yaml并执行baseline推理">2.2 查看YAML并执行Baseline推理<a hidden class="anchor" aria-hidden="true" href="#22-查看yaml并执行baseline推理">#</a></h2>
 <h3 id="221准备baseline-yaml">2.2.1准备Baseline YAML<a hidden class="anchor" aria-hidden="true" href="#221准备baseline-yaml">#</a></h3>
@@ -677,7 +677,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 </span></span><span style="display:flex;"><span>os<span style="color:#0550ae">.</span>environ<span style="color:#1f2328">[</span><span style="color:#0a3069">&#39;QWEN3_RUN_START_TIME&#39;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6639ba">str</span><span style="color:#1f2328">(</span>time<span style="color:#0550ae">.</span>perf_counter<span style="color:#1f2328">())</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image2.png"></p>
+</div><p><img loading="lazy" src="/assets/2026_10_cann_qwen3_8b_2_3_image2.png"></p>
 <p><strong>什么是YAML</strong></p>
 <p>YAML（YAML Ain&rsquo;t Markup Language）是一种<strong>人类可读的配置文件格式</strong>，用缩进和键值对来表示数据，就像“简化版的 JSON，但不用写括号和逗号”。</p>
 <p><strong>为什么需要 YAML</strong></p>
@@ -685,7 +685,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 <p>比如需要改模型路径、是否开 Profiler、是否开 RMSNorm 融合、生成长度这些内容，只需要改 YAML 文件，不用动任何 Python 代码。</p>
 <p><strong>YAML 长什么样</strong></p>
 <p>运行YAML目录文件地址在cann-learning-hub/Sources/model_inference_optimization/qwen3_8b/recipe_yaml/baseline_demo.yaml（上一部分打印的内容）</p>
-<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image3.png"></p>
+<p><img loading="lazy" src="/assets/2026_10_cann_qwen3_8b_2_3_image3.png"></p>
 <p>作为 <strong>Baseline配置</strong>，这份YAML的核心特征是<strong>关闭了各类性能优化</strong>（如 Profiler、RMSNorm 融合、缓存编译等），用于作为后续优化对比的“原始基准”。</p>
 <p>YAML文件的主要字段及解释：</p>
 <p><strong>（1） model_config（模型与推理核心配置）</strong></p>
@@ -1345,7 +1345,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 <h3 id="trace_"><strong>trace_view.json 时间线图谱</strong><a hidden class="anchor" aria-hidden="true" href="#trace_">#</a></h3>
 <p><code>trace_view.json</code> 时间线图谱，呈现了 Qwen3-8B 在昇腾 NPU 上 <strong>Prefill</strong>​与 <strong>Decode</strong>​两个阶段的执行特征。</p>
 <p><strong>Prefill：</strong></p>
-<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image4.png"></p>
+<p><img loading="lazy" src="/assets/2026_10_cann_qwen3_8b_2_3_image4.png"></p>
 <p>对应 <code>prof/prefill</code>，即处理输入 提示词 的阶段。</p>
 <ul>
 <li><strong>时间跨度与标记</strong>：整体约 150ms（50ms-200ms），标记为 <code>ProfilerStep#0</code>，末尾带有 **<code>Dec</code>**​ 标记，暗示向 Decode 阶段的过渡。</li>
@@ -1353,7 +1353,7 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 <li><strong>重叠与频率</strong>：CPU（Python/CANN）与 NPU 有明显的调度交互。底部 <code>Overlap Analysis</code> 中 Computing 与 Free 交替，由于仅执行一次，整体耗时较短，未暴露出小算子的反复累加效应。</li>
 </ul>
 <p><strong>Decode：</strong></p>
-<p><img loading="lazy" src="/posts/tech/2026_10_cann_qwen3_8b_2_3/image5.png"></p>
+<p><img loading="lazy" src="/assets/2026_10_cann_qwen3_8b_2_3_image5.png"></p>
 <ul>
 <li><strong>时间跨度与标记</strong>：整体约 350ms（100ms-450ms），包含 <code>#3</code>、<code>#4</code>、<code>#5</code> 连续多步，每步对应一个（或几个）Token 的生成。</li>
 <li><strong>极度密集的细碎条纹</strong>：这是最核心的视觉特征。NPU 时间线上布满高频、细碎的彩色条纹，直观对应了前文数据中 <strong>435次 MatMul</strong>​ 以及伴随的 <strong>Pow/ReduceMean/Rsqrt/Mul</strong>（RMSNorm 未融合）等小算子。</li>
@@ -1506,22 +1506,34 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
         
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
     }
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener("click", function (e) {
             e.preventDefault();
             var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
             if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                target.scrollIntoView({
                     behavior: "smooth"
                 });
             } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+                target.scrollIntoView();
             }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
             if (id === "top") {
                 history.replaceState(null, null, " ");
             } else {
@@ -1533,14 +1545,20 @@ print(&#39;[环境准备] 完成&#39;, flush=True)
 </script>
 <script>
     var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
         }
-    };
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
 
 </script>
 <script>

@@ -39,7 +39,7 @@
 &lt;/ul&gt;
 &lt;h1 id=&#34;0204_introduction_to_kernel_functions_based_on_add_operator&#34;&gt;02.04_introduction_to_kernel_functions_based_on_add_operator&lt;/h1&gt;
 &lt;p&gt;&lt;strong&gt;习题：sub算子开发&lt;/strong&gt;
-sub_kernel.asc&lt;/p&gt;
+.[./././assets/sub_kernel.asc]&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;add作业题&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;尝试自己努力，然后很悲惨的失败了&amp;hellip;&lt;/p&gt;
 &lt;p&gt;在csdn上找到了大佬的笔记：https://blog.csdn.net/liupang14159/article/details/166738282?spm=1001.2014.3001.5502&lt;/p&gt;

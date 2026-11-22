@@ -78,7 +78,7 @@ CPU vs NPU：算力差距有多大
 16*16矩阵：">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/posts/tech/2026_10_cann_index/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2fd9135862a3da866393a267370bb97cd812193a02eb63558b88b00f30ec3648.css" integrity="sha256-L9kTWGKj2oZjk6JnNwu5fNgSGToC62NVi4iwDzDsNkg=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -196,7 +196,7 @@ CPU vs NPU：算力差距有多大
     </h1>
     <div class="post-meta">
 
-<span title='2026-10-15 10:49:27 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>2 min</span>
+<span title='2026-10-15T10:49:27+08:00'>October 15, 2026</span>&nbsp;·&nbsp;<span>2 min</span>
 
 </div>
   </header> <details class="toc"  open>
@@ -334,7 +334,29 @@ CPU vs NPU：算力差距有多大
             <li>
                 <a href="#day4%e4%b8%8b%e5%8d%88-02-ascend-c-simd-%e7%ae%97%e5%ad%90%e7%bc%96%e7%a8%8b%e6%a8%a1%e5%9e%8b%e4%bb%8b%e7%bb%8d" aria-label="day4下午 02-Ascend C SIMD 算子编程模型介绍">day4下午 02-Ascend C SIMD 算子编程模型介绍</a></li>
             <li>
-                <a href="#day5%e4%b8%8a%e5%8d%88-03-ascend-c-memory-%e7%9f%a2%e9%87%8f%e7%ae%97%e5%ad%90%e5%bc%80%e5%8f%91" aria-label="day5上午 03-Ascend C Memory 矢量算子开发">day5上午 03-Ascend C Memory 矢量算子开发</a>
+                <a href="#day5-03-ascend-c-memory-%e7%9f%a2%e9%87%8f%e7%ae%97%e5%ad%90%e5%bc%80%e5%8f%91" aria-label="day5 03-Ascend C Memory 矢量算子开发">day5 03-Ascend C Memory 矢量算子开发</a></li>
+            <li>
+                <a href="#day6%e4%b8%8a%e5%8d%88-ascend-c-%e7%9f%a9%e9%98%b5%e7%b1%bb%e7%ae%97%e5%ad%90%e7%bc%96%e7%a8%8b" aria-label="day6上午 Ascend C 矩阵类算子编程">day6上午 Ascend C 矩阵类算子编程</a></li>
+            <li>
+                <a href="#day7-ascend-c-%e8%9e%8d%e5%90%88%e7%ae%97%e5%ad%90%e7%bc%96%e7%a8%8b" aria-label="day7 Ascend C 融合算子编程">day7 Ascend C 融合算子编程</a></li>
+            <li>
+                <a href="#day8-ascend-c-%e8%b0%83%e8%af%95%e8%b0%83%e4%bc%98%e4%b8%8e%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5" aria-label="day8 Ascend C 调试调优与最佳实践">day8 Ascend C 调试调优与最佳实践</a></li>
+            <li>
+                <a href="#day9-ascend-c-%e7%ae%97%e5%ad%90%e7%9a%84pytorch%e5%8d%95%e7%ae%97%e5%ad%90%e8%b0%83%e7%94%a8" aria-label="day9 Ascend C 算子的PyTorch单算子调用">day9 Ascend C 算子的PyTorch单算子调用</a></li>
+            <li>
+                <a href="#day10-09-ascend-c-%e7%ae%97%e5%ad%90%e5%85%a5%e5%9b%be" aria-label="day10 09-Ascend C 算子入图">day10 09-Ascend C 算子入图</a></li>
+            <li>
+                <a href="#day11-cannbot" aria-label="day11 cannbot">day11 cannbot</a></li>
+            <li>
+                <a href="#day12-softmax%e4%bc%98%e5%8c%96%e5%ae%9e%e8%b7%b5" aria-label="day12 softmax优化实践">day12 softmax优化实践</a></li>
+            <li>
+                <a href="#day13-matmul" aria-label="day13 matmul">day13 matmul</a></li>
+            <li>
+                <a href="#day14-matmulleakyrelu" aria-label="day14 matmul&#43;leakyReLU">day14 matmul+leakyReLU</a></li>
+            <li>
+                <a href="#day15-pypto" aria-label="day15 pypto">day15 pypto</a></li>
+            <li>
+                <a href="#day16" aria-label="day16">day16</a>
             </li>
         </ul>
     </div>
@@ -545,8 +567,8 @@ torch.npu.get_device_name(0)</p>
 <h1 id="day3-大模型量化基础">day3 大模型量化基础<a hidden class="anchor" aria-hidden="true" href="#day3-大模型量化基础">#</a></h1>
 <p>课件：见课表</p>
 <p>产出：</p>
-<p><a href="https://coyilla.github.io/cann_qwen3_8b_1">https://coyilla.github.io/cann_qwen3_8b_1</a></p>
-<p><a href="https://coyilla.github.io/cann_qwen3_8b_2_3">https://coyilla.github.io/cann_qwen3_8b_2_3</a></p>
+<p><a href="https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1">https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_1</a></p>
+<p><a href="https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_2_3">https://coyilla.github.io/posts/tech/2026_10_cann_qwen3_8b_2_3</a></p>
 <h1 id="day4上午-异构计算与ascend-c算子编程导论">day4上午 异构计算与Ascend C算子编程导论<a hidden class="anchor" aria-hidden="true" href="#day4上午-异构计算与ascend-c算子编程导论">#</a></h1>
 <p>课件：</p>
 <p><a href="https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/06_a2a3_heterogeneous_computing_and_ascend_c_operator_programming_introduction.pptx">https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/06_a2a3_heterogeneous_computing_and_ascend_c_operator_programming_introduction.pptx</a></p>
@@ -558,10 +580,103 @@ torch.npu.get_device_name(0)</p>
 <p>收到CANN挑战赛的参赛通知，这个题目居然只剩两天了就截止了<br>
 <a href="https://competition.gitcode.com/competition/2094721134930419714/intro">https://competition.gitcode.com/competition/2094721134930419714/intro</a></p>
 <p>产出：</p>
-<p><a href="https://coyilla.github.io/cann_ascend_c_basic_note">https://coyilla.github.io/cann_ascend_c_basic_note</a></p>
-<h1 id="day5上午-03-ascend-c-memory-矢量算子开发">day5上午 03-Ascend C Memory 矢量算子开发<a hidden class="anchor" aria-hidden="true" href="#day5上午-03-ascend-c-memory-矢量算子开发">#</a></h1>
+<p><a href="https://coyilla.github.io/posts/tech/2026_10_cann_ascend_c_basic_note">https://coyilla.github.io/posts/tech/2026_10_cann_ascend_c_basic_note</a></p>
+<h1 id="day5-03-ascend-c-memory-矢量算子开发">day5 03-Ascend C Memory 矢量算子开发<a hidden class="anchor" aria-hidden="true" href="#day5-03-ascend-c-memory-矢量算子开发">#</a></h1>
 <p>课件：</p>
 <p><a href="https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/08_a2a3_ascend_c_simd_memory_vector_operator_programming.pptx">https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/08_a2a3_ascend_c_simd_memory_vector_operator_programming.pptx</a></p>
+<p>下午：</p>
+<p>做sigmoid的算子开发</p>
+<p>简单版：https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development 2.5</p>
+<p>困难版：https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development_light 2.9</p>
+<p>参考
+<a href="https://www.hiascend.com/document/detail/zh/canncommercial/700/operatordev/Ascendcopdevg/atlas_ascendc_10_0006.html">https://www.hiascend.com/document/detail/zh/canncommercial/700/operatordev/Ascendcopdevg/atlas_ascendc_10_0006.html</a></p>
+<p>发现：
+<code>AscendC::Duplicate&lt;float&gt;(yLocal, (float)1, this-&gt;tileLength); AscendC::Div(yLocal, yLocal, xLocal, this-&gt;tileLength);</code>和<code>AscendC:Reciprocal(yLocal, xLocal, this-&gt;tileLength);</code>计算结果不一样。</p>
+<p>原因：
+Div(1, x) 是真除法，Reciprocal(x) 是近似倒数。数学上等价，但精度和性能不同。</p>
+<p>写了半天才写出来，纪念一下：
+<img alt="alt text" loading="lazy" src="/assets/2026_10_cann_index_image.png"></p>
+<h1 id="day6上午-ascend-c-矩阵类算子编程">day6上午 Ascend C 矩阵类算子编程<a hidden class="anchor" aria-hidden="true" href="#day6上午-ascend-c-矩阵类算子编程">#</a></h1>
+<p>课件：</p>
+<p><a href="https://gitcode.com/cann/cann-learning-hub/blob/41e768012608f2104efc3f271ff9ddae9bc8c8b4/standard_course/01_bootcamp/two_weeks_course/10_a2a3_ascend_c_simd_matrix_operator_programming.pptx">https://gitcode.com/cann/cann-learning-hub/blob/41e768012608f2104efc3f271ff9ddae9bc8c8b4/standard_course/01_bootcamp/two_weeks_course/10_a2a3_ascend_c_simd_matrix_operator_programming.pptx</a></p>
+<p>习题：</p>
+<p><a href="https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development">https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development</a></p>
+<p>第四章矩阵算子开发</p>
+<p>同样，记录一下
+<img alt="alt text" loading="lazy" src="/assets/2026_10_cann_index_image-1.png"></p>
+<h1 id="day7-ascend-c-融合算子编程">day7 Ascend C 融合算子编程<a hidden class="anchor" aria-hidden="true" href="#day7-ascend-c-融合算子编程">#</a></h1>
+<p>课件：</p>
+<p><a href="https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/09_a2a3_ascend_c_simd_fused_operator_programming.pptx">https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/09_a2a3_ascend_c_simd_fused_operator_programming.pptx</a></p>
+<p><a href="https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development/05_fused_operator_development">https://gitcode.com/cann/cann-learning-hub/tree/master/tutorials/ascendc_operator_development/05_fused_operator_development</a></p>
+<p><a href="https://gitcode.com/cann/cann-learning-hub/blob/master/tutorials/ascendc_operator_development_light/03_simple_operator_practice/README.md">https://gitcode.com/cann/cann-learning-hub/blob/master/tutorials/ascendc_operator_development_light/03_simple_operator_practice/README.md</a></p>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p>实践题目：
+<a href="https://cannjudge.cn/hz_cann/hzdz/matmul_sinh">https://cannjudge.cn/hz_cann/hzdz/matmul_sinh</a></p>
+<h1 id="day8-ascend-c-调试调优与最佳实践">day8 Ascend C 调试调优与最佳实践<a hidden class="anchor" aria-hidden="true" href="#day8-ascend-c-调试调优与最佳实践">#</a></h1>
+<p>课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/12_a2a3_ascend_c_operator_debugging_tuning_and_best_practices.pptx</p>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p>git clone <a href="https://gitcode.com/comic97/asc-devkit.git">https://gitcode.com/comic97/asc-devkit.git</a></p>
+<p>mindstdio<br>
+<a href="https://www.mindspore.cn/mindstudio/docs/zh-CN/82RC1/overview.html">https://www.mindspore.cn/mindstudio/docs/zh-CN/82RC1/overview.html</a></p>
+<p>浏览器://tracing</p>
+<h1 id="day9-ascend-c-算子的pytorch单算子调用">day9 Ascend C 算子的PyTorch单算子调用<a hidden class="anchor" aria-hidden="true" href="#day9-ascend-c-算子的pytorch单算子调用">#</a></h1>
+<p>课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/14_a2a3_ascend_c_operator_pytorch_single_operator_call.pptx</p>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p><img alt="alt text" loading="lazy" src="/assets/2026_10_cann_index_image-2.png"></p>
+<h1 id="day10-09-ascend-c-算子入图">day10 09-Ascend C 算子入图<a hidden class="anchor" aria-hidden="true" href="#day10-09-ascend-c-算子入图">#</a></h1>
+<p>课件：https://gitcode.com/cann/cann-learning-hub/blob/master/standard_course/01_bootcamp/two_weeks_course/15_a2a3_ascend_c_operator_graph_integration_pytorch_aclgraph_ge.pptx</p>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p>实践内容：
+<a href="https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_framework/04_aclgraph/README.md">https://gitcode.com/cann/asc-devkit/blob/master/examples/01_simd_cpp_api/02_features/00_framework/04_aclgraph/README.md</a></p>
+<p><img alt="alt text" loading="lazy" src="/assets/2026_10_cann_index_image-3.png"></p>
+<p>期间遇到一个问题：<br>
+用 cmake -DCMAKE_ASC_ARCHITECTURES=dav-2201 &hellip; 配置后执行 make，bisheng 编译器报错：
+LLVM ERROR: PlugIn Error: no aicore arch specified.
+即编译命令中缺少 &ndash;npu-arch=dav-2201 参数。</p>
+<p>根因<br>
+CMAKE_ASC_ARCHITECTURES 的自动注入机制未被触发。按官方设计，CMake 应在 NPU 运行模式下自动把该变量转换为 &ndash;npu-arch=<!-- raw HTML omitted --> 传给 bisheng，但实际未生效（可能与 find_package(ASC) 的变量读取时机、运行模式或项目 CMakeLists 的覆盖逻辑有关）。结果编译命令只有 &ndash;asc-aicore-lang，缺少架构参数。</p>
+<p>解决方案
+在 CMakeLists.txt 中手动为源文件强制注入编译参数，绕过自动机制：</p>
+<pre tabindex="0"><code>cmake
+set_source_files_properties(add.asc PROPERTIES
+    COMPILE_FLAGS &#34;--npu-arch=dav-2201&#34;
+)
+</code></pre><h1 id="day11-cannbot">day11 cannbot<a hidden class="anchor" aria-hidden="true" href="#day11-cannbot">#</a></h1>
+<p>上午：已签到<br>
+下午：已签到</p>
+<h1 id="day12-softmax优化实践">day12 softmax优化实践<a hidden class="anchor" aria-hidden="true" href="#day12-softmax优化实践">#</a></h1>
+<p><a href="https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise">https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise</a></p>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p><a href="https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise">https://gitcode.com/xujiachen8/softmax-demo-dav2201-practise</a><br>
+<a href="https://cannjudge.cn/public/vector/softmaxrowfp32">https://cannjudge.cn/public/vector/softmaxrowfp32</a><br>
+<a href="https://gitcode.com/?tn=cannlab-environment">https://gitcode.com/?tn=cannlab-environment</a><br>
+<a href="https://asc.gitcode.com/api/SIMD-API/basic_api/memory_vector_compute/SIMD_compute/overview.html">https://asc.gitcode.com/api/SIMD-API/basic_api/memory_vector_compute/SIMD_compute/overview.html</a></p>
+<h1 id="day13-matmul">day13 matmul<a hidden class="anchor" aria-hidden="true" href="#day13-matmul">#</a></h1>
+<p>上午：已签到<br>
+下午：已签到<br>
+<a href="https://gitcode.com/cann/ops-nn/wiki/MatMul%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5%E4%B8%8E%E6%95%88%E6%9E%9C%E5%88%86%E6%9E%90.md">https://gitcode.com/cann/ops-nn/wiki/MatMul%E7%AE%97%E5%AD%90%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5%E4%B8%8E%E6%95%88%E6%9E%9C%E5%88%86%E6%9E%90.md</a></p>
+<p><a href="https://gitcode.com/cann/cann-samples/blob/master/Samples/2_Performance/matmul_story/docs/quant_matmul_mxfp4_tutorials.md">https://gitcode.com/cann/cann-samples/blob/master/Samples/2_Performance/matmul_story/docs/quant_matmul_mxfp4_tutorials.md</a></p>
+<p><a href="https://gitcode.com/cann/cann-samples/Samples/2_Performance/matmul_story/arch22/">https://gitcode.com/cann/cann-samples/Samples/2_Performance/matmul_story/arch22/</a></p>
+<h1 id="day14-matmulleakyrelu">day14 matmul+leakyReLU<a hidden class="anchor" aria-hidden="true" href="#day14-matmulleakyrelu">#</a></h1>
+<p>上午：已签到<br>
+下午：已签到</p>
+<p>Samples/2_Performance/matmul_leakyrelu_fusion_story/fusion_tutorials
+<a href="https://gitcode.com/cann/cann-samples/tree/master/Samples/2_Performance/matmul_leakyrelu_fusion_story/fusion_tutorials">https://gitcode.com/cann/cann-samples/tree/master/Samples/2_Performance/matmul_leakyrelu_fusion_story/fusion_tutorials</a></p>
+<h1 id="day15-pypto">day15 pypto<a hidden class="anchor" aria-hidden="true" href="#day15-pypto">#</a></h1>
+<p>上午：已签到
+下午：已签到<br>
+<a href="https://gitcode.com/cann/pypto">https://gitcode.com/cann/pypto</a><br>
+<a href="https://gitcode.com/cann/pypto-gym">https://gitcode.com/cann/pypto-gym</a><br>
+<a href="https://gitcode.com/liulufang_gitcode/ops-transformer/blob/master/docs/zh/install/quick_install.md">https://gitcode.com/liulufang_gitcode/ops-transformer/blob/master/docs/zh/install/quick_install.md</a><br>
+<img alt="hello_world" loading="lazy" src="/assets/2026_10_cann_index_image-4.png">
+<a href="https://www.hiascend.com/cann/download?versionId=813&amp;ids=d802%2Ch0501%2Ch0601%2Ch0703&amp;currentTab=0">https://www.hiascend.com/cann/download?versionId=813&amp;ids=d802%2Ch0501%2Ch0601%2Ch0703&amp;currentTab=0</a></p>
+<h1 id="day16">day16<a hidden class="anchor" aria-hidden="true" href="#day16">#</a></h1>
+<p>上午：已签到</p>
 
 
   </div>
@@ -671,22 +786,34 @@ torch.npu.get_device_name(0)</p>
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
         
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
     }
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener("click", function (e) {
             e.preventDefault();
             var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
             if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                target.scrollIntoView({
                     behavior: "smooth"
                 });
             } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+                target.scrollIntoView();
             }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
             if (id === "top") {
                 history.replaceState(null, null, " ");
             } else {
@@ -698,14 +825,20 @@ torch.npu.get_device_name(0)</p>
 </script>
 <script>
     var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
         }
-    };
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
 
 </script>
 <script>

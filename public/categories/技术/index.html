@@ -10,7 +10,7 @@
 <meta name="description" content="">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/categories/%E6%8A%80%E6%9C%AF/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2fd9135862a3da866393a267370bb97cd812193a02eb63558b88b00f30ec3648.css" integrity="sha256-L9kTWGKj2oZjk6JnNwu5fNgSGToC62NVi4iwDzDsNkg=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -145,7 +145,7 @@ hello_world&lt;&lt;&lt;numBlocks, nullptr, stream&gt;&gt;&gt;(); 这里的 numBl
 这行代码的作用是： 让主机端（Host）等待所有AI Core上的核函数执行完毕，确保所有8次打印都完成后，程序才继续执行后续的清理工作。如果没有这行，程序可能会在核函数还没执行完时就退出，导致打印不完整。
 课堂练习
 AscendC::printf(&#34;Block[%lu/%lu] Hi Ascend\n&#34;,AscendC::GetBlockIdx(),AscendC::GetBlockNum());
-02.03_ascendc_programming_paradigm_and_api_introduction 基本的矢量编程范式：Ascend C编程范式：CopyIn（数据搬入）、Compute（矢量计算）、CopyOut（结果搬出） 基本的矩阵编程范式：CopyIn（数据搬入）、Split（数据分片）、Compute（子矩阵计算）、Aggregate（结果聚合）、CopyOut（结果搬出） 复杂的矢量/矩阵编程范式 02.04_introduction_to_kernel_functions_based_on_add_operator 习题：sub算子开发 sub_kernel.asc
+02.03_ascendc_programming_paradigm_and_api_introduction 基本的矢量编程范式：Ascend C编程范式：CopyIn（数据搬入）、Compute（矢量计算）、CopyOut（结果搬出） 基本的矩阵编程范式：CopyIn（数据搬入）、Split（数据分片）、Compute（子矩阵计算）、Aggregate（结果聚合）、CopyOut（结果搬出） 复杂的矢量/矩阵编程范式 02.04_introduction_to_kernel_functions_based_on_add_operator 习题：sub算子开发 .[./././assets/sub_kernel.asc]
 add作业题
 尝试自己努力，然后很悲惨的失败了…
 在csdn上找到了大佬的笔记：https://blog.csdn.net/liupang14159/article/details/166738282?spm=1001.2014.3001.5502
@@ -154,7 +154,7 @@ add作业题
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-15 13:41:41 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+<span title='2026-10-15T13:41:41+08:00'>October 15, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
   <a class="entry-link" aria-label="post link to 【CANN训练营】Ascend C算子开发基础知识碎碎念" href="http://localhost:1313/posts/tech/2026_10_cann_ascend_c_basic_note/"></a>
 </article>
 
@@ -182,7 +182,7 @@ CPU vs NPU：算力差距有多大 16*16矩阵：
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-15 10:49:27 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+<span title='2026-10-15T10:49:27+08:00'>October 15, 2026</span>&nbsp;·&nbsp;<span>2 min</span></footer>
   <a class="entry-link" aria-label="post link to 【CANN训练营】课堂笔记" href="http://localhost:1313/posts/tech/2026_10_cann_index/"></a>
 </article>
 
@@ -200,7 +200,7 @@ CPU vs NPU：算力差距有多大 16*16矩阵：
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-15 09:21:09 +0800 CST'>October 15, 2026</span>&nbsp;·&nbsp;<span>8 min</span></footer>
+<span title='2026-10-15T09:21:09+08:00'>October 15, 2026</span>&nbsp;·&nbsp;<span>8 min</span></footer>
   <a class="entry-link" aria-label="post link to GitHub Copilot 使用指南" href="http://localhost:1313/posts/tech/2026_10_how_to_use_copilot/"></a>
 </article>
 
@@ -222,11 +222,12 @@ PaperMod 是一个简洁、现代的 Hugo 主题，支持暗黑模式、响应�
 搭建博客基础雏形，采用Hogo&#43;PaperMod，完成带主页&#43;目录的博客，成功部署到github上并准备好了域名 发表4篇文章作为试水 添加了bing的站点，现在bing上已经可以搜到博客了 发现别人的博客好好看…我也想要…慢慢做吧 起了个好听的名字：Coyilla的技术随想录 在想一些不那么技术的事：把binggo之争放上来 附一张最初的博客，希望以后能坚持更新，改头换面 2026-10-15 发现用markdown做有关图片的插入操作太麻烦了，需要事先将图片复制到文件夹下，再写图片文件地址。所有加了一个插件：Paste image。终于可以在md中自由插入图片了。
 加了categories和tags
 2026-10-15 更改了post文件夹下文件的管理方式，改成这样：
-content/posts/ ├── tech/ │ ├── 2026-10-hugo-blog-setup.md │ └── 2026-10-git-commands.md ├── growth/ │ └── 2026-10-learning-method.md └── weekly/ └── 2026-10-weekly.md </p>
+content/posts/ ├── tech/ │ ├── 2026-10-hugo-blog-setup.md │ └── 2026-10-git-commands.md ├── growth/ │ └── 2026-10-learning-method.md └── weekly/ └── 2026-10-weekly.md 2026-11-18 几乎一个月过去了。看起来我好像没有更新，但是实际上我在使用obsidian来建立自己的工作流，笔记仓库里积累了很多内容，一点点改，一点点做插件，来更新文章。 今天就是使用enveloppe插件来联动两个仓库。可惜的是，这个插件的设置我一直搞不明白，于是只能退而求其次，重新改仓库的结构。看起来好傻啊。但是也总算是有起色了不是吗
+</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-14 23:05:01 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+<span title='2026-10-14T23:05:01+08:00'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
   <a class="entry-link" aria-label="post link to 个人博客搭建记录" href="http://localhost:1313/posts/tech/2026_10_record_of_build_myself_blog/"></a>
 </article>
 
@@ -243,7 +244,7 @@ content/posts/ ├── tech/ │ ├── 2026-10-hugo-blog-setup.md │ └�
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-14 22:38:38 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span></footer>
+<span title='2026-10-14T22:38:38+08:00'>October 14, 2026</span>&nbsp;·&nbsp;<span>9 min</span></footer>
   <a class="entry-link" aria-label="post link to 【CANN训练营】Qwen3-8B 推理优化实践笔记（2~3）" href="http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_2_3/"></a>
 </article>
 
@@ -266,7 +267,7 @@ cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learnin
   </div>
   <footer class="entry-footer">
 
-<span title='2026-10-14 20:13:41 +0800 CST'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+<span title='2026-10-14T20:13:41+08:00'>October 14, 2026</span>&nbsp;·&nbsp;<span>1 min</span></footer>
   <a class="entry-link" aria-label="post link to 【CANN训练营】Qwen3-8B 推理优化实践食用指南" href="http://localhost:1313/posts/tech/2026_10_cann_qwen3_8b_1/"></a>
 </article>
     </main>
@@ -299,22 +300,34 @@ cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learnin
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
         
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
+        
+        let menuScrollTimeout;
+        menu.addEventListener("scroll", function () {
+            clearTimeout(menuScrollTimeout);
+            menuScrollTimeout = setTimeout(function () {
+                localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+            }, 150);
+        }, { passive: true });
     }
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener("click", function (e) {
             e.preventDefault();
             var id = this.getAttribute("href").substr(1);
+            const target = document.querySelector(`[id='${decodeURIComponent(id)}']`);
             if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                target.scrollIntoView({
                     behavior: "smooth"
                 });
             } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+                target.scrollIntoView();
             }
+            
+            
+            if (target.tabIndex < 0 && !target.hasAttribute("tabindex")) {
+                target.setAttribute("tabindex", "-1");
+            }
+            target.focus({ preventScroll: true });
             if (id === "top") {
                 history.replaceState(null, null, " ");
             } else {
@@ -326,14 +339,20 @@ cann-learning-hub/docs/CANNLab_env_experience_guide.md-代码预览-cann-learnin
 </script>
 <script>
     var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
+    var scrollTicking = false;
+    
+    window.addEventListener("scroll", function () {
+        if (scrollTicking) {
+            return;
         }
-    };
+        scrollTicking = true;
+        requestAnimationFrame(function () {
+            const scrollThreshold = window.innerHeight;
+            const shown = document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold;
+            toplink.classList.toggle("hidden", !shown);
+            scrollTicking = false;
+        });
+    }, { passive: true });
 
 </script>
 <script>
