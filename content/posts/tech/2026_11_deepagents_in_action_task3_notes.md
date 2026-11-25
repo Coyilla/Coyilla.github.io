@@ -54,13 +54,13 @@ res = agent.invoke({"messages": [("user", prompt)]})
 print(res["messages"][-1].content)
 ```
 执行结果：
-![file-20261125162315567.png](../../../static/assets/file-20261125162315567.png)
+![file-20261125162315567.png](../../../assets/file-20261125162315567.png)
 完整过程
-![file-20261125163604718.png](../../../static/assets/file-20261125163604718.png)
-![file-20261125163623868.png](../../../static/assets/file-20261125163623868.png)
-![file-20261125163642985.png](../../../static/assets/file-20261125163642985.png)
+![file-20261125163604718.png](../../../assets/file-20261125163604718.png)
+![file-20261125163623868.png](../../../assets/file-20261125163623868.png)
+![file-20261125163642985.png](../../../assets/file-20261125163642985.png)
 工具调用具体过程：
-![file-20261125163720170.png](../../../static/assets/file-20261125163720170.png)
+![file-20261125163720170.png](../../../assets/file-20261125163720170.png)
 ## step2: 上下文自动管理的大结果卸载
 当工具返回的字符串超过一定长度（deepagents 默认阈值通常在几万字符 / ~20k tokens 左右）时，中间件不会把几万字直接塞进对话历史撑爆上下文，而是自动将其写入虚拟文件，并在对话历史里只保留文件路径 + 首尾预览。
 下面的代码自定义一个返回超长文本的工具：
@@ -95,11 +95,11 @@ res = agent.invoke({
 print(res["messages"][-1].content)
 ```
 执行结果：查询成功
-![file-20261125164921209.png](../../../static/assets/file-20261125164921209.png)
+![file-20261125164921209.png](../../../assets/file-20261125164921209.png)
 调用完整过程
-![file-20261125165702577.png](../../../static/assets/file-20261125165702577.png)
+![file-20261125165702577.png](../../../assets/file-20261125165702577.png)
 工具调用摘要：
-![file-20261125165717850.png](../../../static/assets/file-20261125165717850.png)
+![file-20261125165717850.png](../../../assets/file-20261125165717850.png)
 
 ## step3: 两种 Backend 对比实验（`StateBackend` vs `FilesystemBackend`）
 对比最直观的 **`StateBackend`（内存草稿纸）** 和 **`FilesystemBackend`（本地真磁盘）**
@@ -149,15 +149,15 @@ res_b = agent_fs_restarted.invoke({"messages": [("user", "用 read_file 读取 /
 print("FilesystemBackend 重启后读取结果：", res_b["messages"][-1].content)
 ```
 执行结果：
-![file-20261125170808275.png](../../../static/assets/file-20261125170808275.png)
+![file-20261125170808275.png](../../../assets/file-20261125170808275.png)
 实验A中第一次调用agent：
-![file-20261125171026969.png](../../../static/assets/file-20261125171026969.png)
+![file-20261125171026969.png](../../../assets/file-20261125171026969.png)
 实验A中第二次调用agent：
-![file-20261125171101651.png](../../../static/assets/file-20261125171101651.png)
+![file-20261125171101651.png](../../../assets/file-20261125171101651.png)
 实验B中第一次调用agent：
-![file-20261125171128296.png](../../../static/assets/file-20261125171128296.png)
+![file-20261125171128296.png](../../../assets/file-20261125171128296.png)
 实验B中第二次调用agent：
-![file-20261125171206883.png](../../../static/assets/file-20261125171206883.png)
+![file-20261125171206883.png](../../../assets/file-20261125171206883.png)
 同时实验B创建的文件也存在，vscode可以打开查看
 
 对比表格
